@@ -1,0 +1,4 @@
+# Intermediate files
+*.o
+*.exe
+*.out
