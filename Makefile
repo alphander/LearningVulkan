@@ -8,10 +8,12 @@ CC:=clang
 RM:=del
 OUT:=a.exe
 
-INCLUDES:=-I./$(INCLUDE) -I./$(SRC) -I"C:/Program Files/VulkanSDK/1.3.224.1/Include"
-LIBS:=-L./$(LIB) -L"C:/Program Files/VulkanSDK/1.3.224.1/Lib"
+INCLUDES:=-I./$(INCLUDE) -I./$(SRC) -I"C:/Program Files/VulkanSDK/1.3.243.0/Include"
+LIBS:=-L./$(LIB) -L"C:/Program Files/VulkanSDK/1.3.243.0/Lib"
 
-DEFINES:=
+LIBFILES:=$(wildcard $(LIB)/*.a $(LIB)/**/*.a $(LIB)/**/**/*.a)
+
+DEFINES:= -D_BSD_SOURCE
 
 LDFLAGS:= -lgdi32 -lvulkan -ldl -lpthread
 
@@ -34,15 +36,21 @@ build: $(OUT)
 
 # [Compile C program]
 
-ASSEMBLE=$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(LDFLAGS)
+ASSEMBLE=$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(LIBFILES) $(LDFLAGS)
 COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
 
 $(OUT):\
-	$(OBJ)/main.o
+	$(OBJ)/main.o\
+	$(OBJ)/logging.o
 	$(ASSEMBLE)
 
 $(OBJ)/main.o:\
-	$(SRC)/main.c
+	$(SRC)/main.c\
+	$(SRC)/logging/logging.h
+	$(COMPILE)
+
+$(OBJ)/logging.o:\
+	$(SRC)/logging/logging.c
 	$(COMPILE)
 
 # [Clean C program]
