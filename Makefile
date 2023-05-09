@@ -8,17 +8,21 @@ CC:=clang
 RM:=del
 OUT:=a.exe
 
-INCLUDES:=-I./$(INCLUDE) -I./$(SRC) -I"C:/Program Files/VulkanSDK/1.3.243.0/Include"
-LIBS:=-L./$(LIB) -L"C:/Program Files/VulkanSDK/1.3.243.0/Lib"
+INCLUDES:=-I"C:/Program Files/VulkanSDK/1.3.246.0/Include"
+LIBS:=-L"C:/Program Files/VulkanSDK/1.3.246.0/Lib"
 
-LIBFILES:=$(wildcard $(LIB)/*.a $(LIB)/**/*.a $(LIB)/**/**/*.a)
+DEFINES:=
 
-DEFINES:= -D_BSD_SOURCE
+LDFLAGS:=-lvulkan-1
 
-LDFLAGS:= -lgdi32 -lvulkan -ldl -lpthread
+LIBFILES:=$(wildcard $(LIB)/**/*.a)
 
 CFLAGS_ND:=-Wall -O2 -std=c17 -DNDEBUG
 CFLAGS_D:=-Wall -g -O0 -std=c17 -DDEBUG
+
+# [Default Settings]
+INCLUDES+=-I./$(INCLUDE) -I./$(SRC)
+LIBS+=-L./$(LIB)
 
 # [Debug and Release rules]
 
@@ -34,6 +38,7 @@ debug: build
 
 build: $(OUT)
 
+
 # [Compile C program]
 
 ASSEMBLE=$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(LIBFILES) $(LDFLAGS)
@@ -41,16 +46,22 @@ COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
 
 $(OUT):\
 	$(OBJ)/main.o\
-	$(OBJ)/logging.o
+	$(OBJ)/logging.o\
+	$(OBJ)/util.o
 	$(ASSEMBLE)
 
 $(OBJ)/main.o:\
 	$(SRC)/main.c\
-	$(SRC)/logging/logging.h
+	$(SRC)/logging/logging.h\
+	$(SRC)/util.h
 	$(COMPILE)
 
 $(OBJ)/logging.o:\
 	$(SRC)/logging/logging.c
+	$(COMPILE)
+
+$(OBJ)/util.o:\
+	$(SRC)/util.c
 	$(COMPILE)
 
 # [Clean C program]

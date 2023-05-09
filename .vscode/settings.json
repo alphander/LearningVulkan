@@ -1,6 +1,7 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     "files.associations": {
-        "vulkan.h": "c"
+        "vulkan.h": "c",
+        "stdint.h": "c"
     }
 }
