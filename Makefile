@@ -18,7 +18,7 @@ LDFLAGS:=-lvulkan-1
 LIBFILES:=$(wildcard $(LIB)/**/*.a)
 
 CFLAGS_ND:=-Wall -O2 -std=c17 -DNDEBUG
-CFLAGS_D:=-Wall -g -O0 -std=c17 -DDEBUG
+CFLAGS_D:=-Wall -g -O0 -std=c17 -DDEBUG 
 
 # [Default Settings]
 INCLUDES+=-I./$(INCLUDE) -I./$(SRC)

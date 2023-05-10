@@ -10,7 +10,7 @@ The code I'm writing is coming from thoroughly reading the vulkan specification.
 (PDF): https://registry.khronos.org/vulkan/specs/1.3/pdf/vkspec.pdf
 
 ### Vulkan Tutorial
-This is the very famous vulkan tutorial that every uses. (Note this is for C++) 
+This is the very famous vulkan tutorial that everyone uses. I'm using the code examples as a loose guideline. (Note this is for C++) 
 https://vulkan-tutorial.com/
 
 ### Vulkan in 30 minutes

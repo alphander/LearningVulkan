@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#ifdef PROFILER_ENABLED
+#ifndef NDEBUG
 #define PROFILER_SAMPLE() profiler_sample()
 #else
 #define PROFILER_SAMPLE()
@@ -15,4 +15,6 @@ void profiler_sample(char* function_name)
     timespec_get(&ts, TIME_UTC);
     printf("%s\n", function_name);
     printf("nano seconds: %ld\n", ts.tv_nsec);
+
+    
 }

@@ -27,8 +27,6 @@ void queue_flags_to_name(uint32_t queueFlags, uint32_t* queueFlagCount, char** f
 		flagArray[i++] = "VK_QUEUE_VIDEO_DECODE_BIT_KHR";
 	if (queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV) 
 		flagArray[i++] = "VK_QUEUE_OPTICAL_FLOW_BIT_NV";
-	if (queueFlags & VK_QUEUE_FLAG_BITS_MAX_ENUM) 
-		flagArray[i++] = "VK_QUEUE_FLAG_BITS_MAX_ENUM";
 
 	*queueFlagCount = i;
 }
@@ -47,8 +45,6 @@ char* physical_device_type_to_name(int physicalDeviceType)
 			return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
 		case VK_PHYSICAL_DEVICE_TYPE_CPU:
 			return "VK_PHYSICAL_DEVICE_TYPE_CPU";
-		case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
-			return "VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM";
 		default:
 			return NULL;
 	}

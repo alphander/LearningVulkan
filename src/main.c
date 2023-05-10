@@ -65,72 +65,81 @@ int main()
 	// VkPhysicalDeviceProperties
 	
 	VkPhysicalDeviceProperties physicalDevicePropertiesArray[physicalDeviceCount];
+	VkPhysicalDeviceFeatures physicalDeviceFeaturesArray[physicalDeviceCount];
 
 	for (int i = 0; i < physicalDeviceCount; i++)
 	{
 		vkGetPhysicalDeviceProperties(physicalDeviceArray[i], &physicalDevicePropertiesArray[i]);
+		vkGetPhysicalDeviceFeatures(physicalDeviceArray[i], &physicalDeviceFeaturesArray[i]);
 	}
 
 	// ----------------------------------------------------------------------------------------------------
 	// Logging "physicalDevicePropertiesArray"
 	#ifdef LOG_ALL_VULKAN_DEBUG
-
-	printf("\nPhysical Device List:\n");
-	printf("-------------------------------------------------------------------------\n");
-	for (int i = 0; i < physicalDeviceCount; i++)
 	{
-		VkPhysicalDeviceProperties physicalDeviceProperties = physicalDevicePropertiesArray[i]; 
-		printf("  %s:\n", physicalDeviceProperties.deviceName);
-		printf("    - Device Type: \"%s\"\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
-		printf("\n");
-	}
-
-	#endif
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// Find a proper way of selecting a physical device based on its properties.
-
-	VkPhysicalDevice physicalDevice = physicalDeviceArray[0]; // TEMP
-
-	// ####################################################################################################
-	// vkGetPhysicalDeviceQueueFamilyProperties
-
-	uint32_t queueFamilyPropertiesCount;
-	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, NULL);
-
-	VkQueueFamilyProperties queueFamilyPropertiesArray[queueFamilyPropertiesCount];
-	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, queueFamilyPropertiesArray);
-
-	// ----------------------------------------------------------------------------------------------------
-	// Logging "queueFamilyPropertiesArray"'s queueFlags
-	#ifdef LOG_ALL_VULKAN_DEBUG
-	
-	printf("\nQueue Family:\n");
-	printf("-------------------------------------------------------------------------\n");
-	for (int i = 0; i < queueFamilyPropertiesCount; i++)
-	{
-		VkQueueFlags queueFlags = queueFamilyPropertiesArray[i].queueFlags;
-
-		uint32_t flagCount = 0;
-		queue_flags_to_name(queueFlags, &flagCount, NULL);
-		char* queueFlagNameArray[flagCount];
-		queue_flags_to_name(queueFlags, &flagCount, queueFlagNameArray);
-
-		printf("\n  Queue %i Flags:\n", i);
-		for (int j = 0; j < flagCount; j++)
+		printf("\nPhysical Device List:\n");
+		printf("-------------------------------------------------------------------------\n");
+		for (int i = 0; i < physicalDeviceCount; i++)
 		{
-			printf("    %s\n", queueFlagNameArray[j]);
+			VkPhysicalDeviceProperties physicalDeviceProperties = physicalDevicePropertiesArray[i]; 
+			VkPhysicalDeviceFeatures physicalDeviceFeatures = physicalDeviceFeaturesArray[i];
+			printf("  %s:\n", physicalDeviceProperties.deviceName);
+			printf("    - Device Type: \"%s\"\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
+			printf("\n");
 		}
 	}
-
 	#endif
+
+	VkPhysicalDevice physicalDevice;
+
+	for (int i = 0; i < physicalDeviceCount; i++)
+	{
+		VkPhysicalDeviceProperties currentPhysicalDeviceProperties = physicalDevicePropertiesArray[i];
+		if (currentPhysicalDeviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) 
+			continue;
+
+		uint32_t currentQueueFamilyPropertiesCount;
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &currentQueueFamilyPropertiesCount, NULL);
+
+		VkQueueFamilyProperties currentQueueFamilyPropertiesArray[currentQueueFamilyPropertiesCount];
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &currentQueueFamilyPropertiesCount, currentQueueFamilyPropertiesArray);
+
+		bool complete = false;
+		for (int j = 0; j < currentQueueFamilyPropertiesCount; j++)
+		{
+			if (currentQueueFamilyPropertiesArray[j].queueFlags & VK_QUEUE_COMPUTE_BIT)
+			{
+				physicalDevice = physicalDeviceArray[i];
+				complete = true;
+				break;
+			}
+		}
+		if (complete) break;
+	}
+
+	// ####################################################################################################
+	// vkDevice
+
+	VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
+	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	deviceQueueCreateInfo.queueCount = 1;
+	deviceQueueCreateInfo.pQueuePriorities = (float[1]) {1.0f};
+	deviceQueueCreateInfo.queueFamilyIndex = 0;
+
+	VkDevice device;
+
+	VkDeviceCreateInfo deviceCreateInfo = {};
+	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+
+
+	vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
 
 	// ####################################################################################################
 	//	Cleanup
 	//
 	// ####################################################################################################
 
+	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);
-
-	return 0;
 }
