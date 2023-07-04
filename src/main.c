@@ -25,6 +25,12 @@ int main()
 	};
 	const uint32_t enabledLayerCount = (uint32_t) (sizeof(enabledLayerArray) / sizeof(char*));
 
+	const char* const enabledExtensionArray[] = 
+	{
+
+	};
+	const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
+
 	VkResult result;
 
 	// ####################################################################################################
@@ -43,8 +49,8 @@ int main()
 		VkInstanceCreateInfo instanceCreateInfo = {};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceCreateInfo.pApplicationInfo = &applicationInfo;
-		instanceCreateInfo.enabledExtensionCount = 0;
-		instanceCreateInfo.ppEnabledExtensionNames = NULL;
+		instanceCreateInfo.enabledExtensionCount = enabledExtensionCount;
+		instanceCreateInfo.ppEnabledExtensionNames = enabledExtensionArray;
 		instanceCreateInfo.enabledLayerCount = enabledLayerCount;
 		instanceCreateInfo.ppEnabledLayerNames = enabledLayerArray;
 
