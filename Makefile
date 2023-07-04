@@ -8,8 +8,8 @@ CC:=clang
 RM:=del
 OUT:=a.exe
 
-INCLUDES:=-I"C:/Program Files/VulkanSDK/1.3.246.0/Include"
-LIBS:=-L"C:/Program Files/VulkanSDK/1.3.246.0/Lib"
+INCLUDES:=-I"C:/Program Files/VulkanSDK/1.3.250.1/Include"
+LIBS:=-L"C:/Program Files/VulkanSDK/1.3.250.1/Lib"
 
 DEFINES:=
 
