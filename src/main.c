@@ -35,24 +35,30 @@ int main()
 
 	// ####################################################################################################
 	// VkInstance
+
 	VkInstance instance;
 
 	{
-		VkApplicationInfo applicationInfo = {};
-		applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		applicationInfo.apiVersion = VK_API_VERSION_1_3;
-		applicationInfo.pEngineName = "No Engine";
-		applicationInfo.pApplicationName = "LearningVulkan";
+		VkApplicationInfo applicationInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+			.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+			.engineVersion = VK_MAKE_VERSION(1, 0, 0),
+			.apiVersion = VK_API_VERSION_1_3,
+			.pEngineName = "No Engine",
+			.pApplicationName = "LearningVulkan",
+		};
 
-		VkInstanceCreateInfo instanceCreateInfo = {};
-		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		instanceCreateInfo.pApplicationInfo = &applicationInfo;
-		instanceCreateInfo.enabledExtensionCount = enabledExtensionCount;
-		instanceCreateInfo.ppEnabledExtensionNames = enabledExtensionArray;
-		instanceCreateInfo.enabledLayerCount = enabledLayerCount;
-		instanceCreateInfo.ppEnabledLayerNames = enabledLayerArray;
+		VkInstanceCreateInfo instanceCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+			.pApplicationInfo = &applicationInfo,
+			.enabledExtensionCount = enabledExtensionCount,
+			.ppEnabledExtensionNames = enabledExtensionArray,
+			.enabledLayerCount = enabledLayerCount,
+			.ppEnabledLayerNames = enabledLayerArray,
+		};
+
 
 		result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
 		if (result != VK_SUCCESS) error("Problem at vkCreateInstance! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
@@ -151,16 +157,21 @@ int main()
 
 	// Create VkDevice
 	{
-		VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
-		deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		deviceQueueCreateInfo.queueCount = 1;
-		deviceQueueCreateInfo.pQueuePriorities = (float[1]) {1.0f};
-		deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+		VkDeviceQueueCreateInfo deviceQueueCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+			.queueCount = 1,
+			.pQueuePriorities = (float[1]) {1.0f},
+			.queueFamilyIndex = queueFamilyIndex,
+		};
+
 	
-		VkDeviceCreateInfo deviceCreateInfo = {};
-		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-		deviceCreateInfo.queueCreateInfoCount = 1;
+		VkDeviceCreateInfo deviceCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+			.pQueueCreateInfos = &deviceQueueCreateInfo,
+			.queueCreateInfoCount = 1,
+		};
 	
 		result = vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
 		if (result != VK_SUCCESS) error("Problem at vkCreateDevice! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
@@ -169,12 +180,30 @@ int main()
 	VkQueue queue;
 	vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
+	// Command Pool
+
+	VkCommandPool commandPool;
+
+	// Create VkCommandPool
+	{
+		VkCommandPoolCreateInfo commandPoolCreateInfo =
+		{
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+			.queueFamilyIndex = queueFamilyIndex,
+		};
+
+		result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
+		if (result != VK_SUCCESS) error("Problem at VkCommandPool! VkResult: %s\n", result_to_name(result));
+	}
+
 
 	// ####################################################################################################
 	//	Cleanup
 	//
 	// ####################################################################################################
 
+	vkDestroyCommandPool(device, commandPool, NULL);
 	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);
 }
