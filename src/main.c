@@ -5,15 +5,14 @@
 #include <assert.h>
 #include <vulkan/vulkan.h>
 
-#include "logging/logging.h"
-#include "util.h"
-#include "profiling.h"
-
 // #define DISABLE_ERROR_LOGGING
 // #define DISABLE_FINISH_LOGGING
 // #define DISABLE_LOG_LOGGING
 // #define DISABLE_PRINT_LOGGING
 
+#include "logging/logging.h"
+#include "util.h"
+#include "profiling.h"
 
 int main()
 {
@@ -34,13 +33,14 @@ int main()
 	};
 	const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
 
-	VkResult result;
+	VkResult result; // Reusable
 
 	// ####################################################################################################
 	// VkInstance
 
 	VkInstance instance;
 
+	// Create VkInstance
 	{
 		VkApplicationInfo applicationInfo = 
 		{
@@ -83,7 +83,7 @@ int main()
 	VkPhysicalDeviceProperties physicalDevicePropertiesArray[physicalDeviceCount];
 	VkPhysicalDeviceFeatures physicalDeviceFeaturesArray[physicalDeviceCount];
 
-	// Populate VkPhysicalDeviceProperties array and VkPhysicalDeviceFeatures array
+	// Populate VkPhysicalDeviceProperties array and populate VkPhysicalDeviceFeatures array
 	{
 		for (int i = 0; i < physicalDeviceCount; i++)
 		{
@@ -109,49 +109,52 @@ int main()
 	VkPhysicalDevice physicalDevice = NULL;
 	uint32_t queueFamilyIndex = 0;
 
-	print("\nQueue Family:\n");
-	print("-------------------------------------------------------------------------");
-	for (int i = 0; i < physicalDeviceCount; i++)
+	// Select physical device and select queue family
 	{
-		print("\n -Queue Families: %s\n", physicalDevicePropertiesArray[i].deviceName);
-		VkPhysicalDeviceProperties currentPhysicalDeviceProperties = physicalDevicePropertiesArray[i];
-
-		uint32_t currentQueueFamilyPropertiesCount;
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceArray[i], &currentQueueFamilyPropertiesCount, NULL);
-		VkQueueFamilyProperties currentQueueFamilyPropertiesArray[physicalDeviceCount];
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceArray[i], &currentQueueFamilyPropertiesCount, currentQueueFamilyPropertiesArray);
-
-		for (int j = 0; j < currentQueueFamilyPropertiesCount; j++)
+		print("\nQueue Family:\n");
+		print("-------------------------------------------------------------------------");
+		for (int i = 0; i < physicalDeviceCount; i++)
 		{
-			VkQueueFamilyProperties currentQueueFamilyProperties = currentQueueFamilyPropertiesArray[j];
-			VkQueueFlags queueFlags = currentQueueFamilyProperties.queueFlags;
+			print("\n -Queue Families: %s\n", physicalDevicePropertiesArray[i].deviceName);
+			VkPhysicalDeviceProperties currentPhysicalDeviceProperties = physicalDevicePropertiesArray[i];
 
-			print("   -Queue Family Index %i:", j);
+			uint32_t currentQueueFamilyPropertiesCount;
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceArray[i], &currentQueueFamilyPropertiesCount, NULL);
+			VkQueueFamilyProperties currentQueueFamilyPropertiesArray[physicalDeviceCount];
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceArray[i], &currentQueueFamilyPropertiesCount, currentQueueFamilyPropertiesArray);
 
-			if (currentQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT &&
-				currentPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			for (int j = 0; j < currentQueueFamilyPropertiesCount; j++)
 			{
-				print(" VALID\n");
-				physicalDevice = physicalDeviceArray[i];
-				queueFamilyIndex = j;
+				VkQueueFamilyProperties currentQueueFamilyProperties = currentQueueFamilyPropertiesArray[j];
+				VkQueueFlags queueFlags = currentQueueFamilyProperties.queueFlags;
+
+				print("   -Queue Family Index %i:", j);
+
+				if (currentQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT &&
+					currentPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+				{
+					print(" VALID\n");
+					physicalDevice = physicalDeviceArray[i];
+					queueFamilyIndex = j;
+				}
+				else print(" NOT VALID\n");
+
+				uint32_t flagCount;
+				queue_flags_to_name(queueFlags, &flagCount, NULL);
+				char* queueFlagNameArray[flagCount];
+				queue_flags_to_name(queueFlags, &flagCount, queueFlagNameArray);
+
+
+				for (int k = 0; k < flagCount; k++)
+				{
+					print("      %s\n", queueFlagNameArray[k]);
+				}
+				print("\n");
 			}
-			else print(" NOT VALID\n");
-
-			uint32_t flagCount;
-			queue_flags_to_name(queueFlags, &flagCount, NULL);
-			char* queueFlagNameArray[flagCount];
-			queue_flags_to_name(queueFlags, &flagCount, queueFlagNameArray);
-
-
-			for (int k = 0; k < flagCount; k++)
-			{
-				print("      %s\n", queueFlagNameArray[k]);
-			}
-			print("\n");
 		}
-	}
 
-	if (physicalDevice == NULL) error("No valid queues!");
+		if (physicalDevice == NULL) error("No valid queues!");
+	}
 
 	// ####################################################################################################
 	// vkDevice
@@ -183,6 +186,7 @@ int main()
 	VkQueue queue;
 	vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
+	// ####################################################################################################
 	// Command Pool
 
 	VkCommandPool commandPool;
