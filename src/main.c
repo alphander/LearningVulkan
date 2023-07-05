@@ -137,7 +137,10 @@ int main()
 					physicalDevice = physicalDeviceArray[i];
 					queueFamilyIndex = j;
 				}
-				else print(" NOT VALID\n");
+				else 
+				{
+					print(" NOT VALID\n");
+				}
 
 				uint32_t flagCount;
 				queue_flags_to_name(queueFlags, &flagCount, NULL);
@@ -157,7 +160,7 @@ int main()
 	}
 
 	// ####################################################################################################
-	// vkDevice
+	// vkDevice and VkQueue
 
 	VkDevice device;
 
