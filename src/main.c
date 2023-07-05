@@ -204,8 +204,28 @@ int main()
 		};
 
 		result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
-		if (result != VK_SUCCESS) error("Problem at VkCommandPool! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkCreateCommandPool! VkResult: %s\n", result_to_name(result));
 	}
+
+	// ####################################################################################################
+	// Command Buffer
+
+	VkCommandBuffer commandBuffer;
+
+	// Allocate a main command buffer
+	{
+		VkCommandBufferAllocateInfo commandBufferAllocateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			.commandPool = commandPool,
+			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			.commandBufferCount = 1,
+		};
+
+		result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
+		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result));
+	}
+
 
 
 	// ####################################################################################################
@@ -213,6 +233,7 @@ int main()
 	//
 	// ####################################################################################################
 
+	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 	vkDestroyCommandPool(device, commandPool, NULL);
 	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);
