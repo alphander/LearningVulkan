@@ -9,7 +9,10 @@
 #include "util.h"
 #include "profiling.h"
 
-#define LOG_ALL_VULKAN_DEBUG
+// #define DISABLE_ERROR_LOGGING
+// #define DISABLE_FINISH_LOGGING
+// #define DISABLE_LOG_LOGGING
+// #define DISABLE_PRINT_LOGGING
 
 
 int main()
@@ -88,15 +91,15 @@ int main()
 			vkGetPhysicalDeviceFeatures(physicalDeviceArray[i], &physicalDeviceFeaturesArray[i]);
 		}
 
-		printf("\nPhysical Device List:\n");
-		printf("-------------------------------------------------------------------------\n");
+		print("\nPhysical Device List:\n");
+		print("-------------------------------------------------------------------------\n");
 		for (int i = 0; i < physicalDeviceCount; i++)
 		{
 			VkPhysicalDeviceProperties physicalDeviceProperties = physicalDevicePropertiesArray[i]; 
 			VkPhysicalDeviceFeatures physicalDeviceFeatures = physicalDeviceFeaturesArray[i];
-			printf("  %s:\n", physicalDeviceProperties.deviceName);
-			printf("    - Device Type: \"%s\"\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
-			printf("\n");
+			print("  %s:\n", physicalDeviceProperties.deviceName);
+			print("    - Device Type: \"%s\"\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
+			print("\n");
 		}
 	}
 
@@ -106,11 +109,11 @@ int main()
 	VkPhysicalDevice physicalDevice = NULL;
 	uint32_t queueFamilyIndex = 0;
 
-	printf("\nQueue Family:\n");
-	printf("-------------------------------------------------------------------------");
+	print("\nQueue Family:\n");
+	print("-------------------------------------------------------------------------");
 	for (int i = 0; i < physicalDeviceCount; i++)
 	{
-		printf("\n -Queue Families: %s\n", physicalDevicePropertiesArray[i].deviceName);
+		print("\n -Queue Families: %s\n", physicalDevicePropertiesArray[i].deviceName);
 		VkPhysicalDeviceProperties currentPhysicalDeviceProperties = physicalDevicePropertiesArray[i];
 
 		uint32_t currentQueueFamilyPropertiesCount;
@@ -123,16 +126,16 @@ int main()
 			VkQueueFamilyProperties currentQueueFamilyProperties = currentQueueFamilyPropertiesArray[j];
 			VkQueueFlags queueFlags = currentQueueFamilyProperties.queueFlags;
 
-			printf("   -Queue Family Index %i:", j);
+			print("   -Queue Family Index %i:", j);
 
 			if (currentQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT &&
 				currentPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 			{
-				printf(" VALID\n");
+				print(" VALID\n");
 				physicalDevice = physicalDeviceArray[i];
 				queueFamilyIndex = j;
 			}
-			else printf(" NOT VALID\n");
+			else print(" NOT VALID\n");
 
 			uint32_t flagCount;
 			queue_flags_to_name(queueFlags, &flagCount, NULL);
@@ -142,9 +145,9 @@ int main()
 
 			for (int k = 0; k < flagCount; k++)
 			{
-				printf("      %s\n", queueFlagNameArray[k]);
+				print("      %s\n", queueFlagNameArray[k]);
 			}
-			printf("\n");
+			print("\n");
 		}
 	}
 
