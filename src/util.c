@@ -1,6 +1,14 @@
 #include <vulkan/vulkan.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <logging/logging.h>
+
+typedef struct UtilFile
+{
+	size_t size;
+	char* data;
+} UtilFile;
 
 char* result_to_name(uint32_t result)
 {
@@ -149,6 +157,41 @@ char* physical_device_type_to_name(int physicalDeviceType)
 		case VK_PHYSICAL_DEVICE_TYPE_CPU:
 			return "VK_PHYSICAL_DEVICE_TYPE_CPU";
 		default:
-			return NULL;
+			return "INVALID_PHYSICAL_DEVICE_ENUMERATION";
 	}
+}
+
+UtilFile utilfile_read(const char* path)
+{
+	FILE* file = fopen(path, "rb");
+
+	if (file == NULL) error("Couldn't read file at %s!", path);
+
+	fseek(file, 0L, SEEK_END);
+	size_t fileSize = (size_t)ftell(file);
+	rewind(file);
+
+	char* fileBuffer = malloc(fileSize);
+
+	if (fileBuffer == NULL)
+	{
+		fclose(file);
+		error("Couldn't allocate memory for file!");
+	}
+
+	fread(fileBuffer, sizeof(char), fileSize, file);
+	fclose(file);
+
+	UtilFile utilFile = 
+	{
+		.size = fileSize,
+		.data = fileBuffer,
+	};
+
+	return utilFile;
+}
+
+void utilfile_free(UtilFile file)
+{
+	free(file.data);
 }

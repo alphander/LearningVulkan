@@ -5,6 +5,7 @@ INCLUDE:=include
 OBJ:=obj
 
 CC:=clang
+GLSLC=glslc
 RM:=del
 OUT:=a.exe
 
@@ -36,13 +37,15 @@ release: build
 debug: CFLAGS=$(CFLAGS_D)
 debug: build
 
-build: $(OUT)
+build: $(OUT) GLSL
 
 
-# [Compile C program]
+# [Compile program]
 
 ASSEMBLE=$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(LIBFILES) $(LDFLAGS)
 COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
+
+# C Compile
 
 $(OUT):\
 	$(OBJ)/main.o\
@@ -61,10 +64,22 @@ $(OBJ)/logging.o:\
 	$(COMPILE)
 
 $(OBJ)/util.o:\
-	$(SRC)/util.c
+	$(SRC)/util.c\
+	$(SRC)/logging/logging.h
 	$(COMPILE)
 
-# [Clean C program]
+# GLSL Compile 
+
+COMPILE_GLSL=$(GLSLC) -c $< -o $@
+
+GLSL:\
+	$(OUT) $(OBJ)/computeshader.spv
+
+$(OBJ)/computeshader.spv:\
+	$(SRC)/shaders/computeshader.comp
+	$(COMPILE_GLSL)
+
+# [Clean program]
 
 clean:
 	$(RM) $(OUT)

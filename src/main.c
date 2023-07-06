@@ -226,6 +226,46 @@ int main()
 		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result));
 	}
 
+	// ####################################################################################################
+	// Shader Module
+
+	VkShaderModule shaderModule;
+
+	{
+
+		const char* filePath = "obj/computeshader.spv";
+
+		UtilFile file = utilfile_read(filePath);
+
+		VkShaderModuleCreateInfo shaderModuleCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+			.codeSize = file.size,
+			.pCode = (uint32_t*)file.data,
+		};
+
+		result = vkCreateShaderModule(device, &shaderModuleCreateInfo, NULL, &shaderModule);
+		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result));
+
+		utilfile_free(file);
+	}
+
+	// Record command buffer
+	// {
+	// 	VkCommandBufferInheritanceInfo commandBufferInheritanceInfo =
+	// 	{
+	// 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+	// 		.
+	// 	};
+
+	// 	VkCommandBufferBeginInfo commandBufferBeginInfo = 
+	// 	{
+	// 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+	// 		.pInheritanceInfo = &commandBufferInheritanceInfo,
+	// 	};
+
+	// 	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+	// }
 
 
 	// ####################################################################################################
@@ -233,6 +273,7 @@ int main()
 	//
 	// ####################################################################################################
 
+	vkDestroyShaderModule(device, shaderModule, NULL);
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 	vkDestroyCommandPool(device, commandPool, NULL);
 	vkDestroyDevice(device, NULL);
