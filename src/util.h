@@ -6,8 +6,8 @@ typedef struct UtilFile
 	char* data;
 } UtilFile;
 
-UtilFile utilfile_read(const char* path);
-void utilfile_free(UtilFile file);
+void utilfile_create(UtilFile* utilFile, const char* path);
+void utilfile_destroy(UtilFile* utilFile);
 
 char* result_to_name(uint32_t result);
 void queue_flags_to_name(uint32_t queueFlags, uint32_t* queueFlagCount, char** flagArray);

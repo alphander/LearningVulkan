@@ -161,8 +161,10 @@ char* physical_device_type_to_name(int physicalDeviceType)
 	}
 }
 
-UtilFile utilfile_read(const char* path)
+void utilfile_create(UtilFile* utilFile, const char* path)
 {
+	if (utilFile == NULL) error("util file is null %s!", path);
+
 	FILE* file = fopen(path, "rb");
 
 	if (file == NULL) error("Couldn't read file at %s!", path);
@@ -182,16 +184,11 @@ UtilFile utilfile_read(const char* path)
 	fread(fileBuffer, sizeof(char), fileSize, file);
 	fclose(file);
 
-	UtilFile utilFile = 
-	{
-		.size = fileSize,
-		.data = fileBuffer,
-	};
-
-	return utilFile;
+	utilFile->size = fileSize;
+	utilFile->data = fileBuffer;
 }
 
-void utilfile_free(UtilFile file)
+void utilfile_destroy(UtilFile* file)
 {
-	free(file.data);
+	free(file->data);
 }

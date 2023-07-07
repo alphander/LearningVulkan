@@ -232,22 +232,34 @@ int main()
 	VkShaderModule shaderModule;
 
 	{
-
 		const char* filePath = "obj/computeshader.spv";
 
-		UtilFile file = utilfile_read(filePath);
+		UtilFile utilFile;
+
+		utilfile_create(&utilFile, filePath);
 
 		VkShaderModuleCreateInfo shaderModuleCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-			.codeSize = file.size,
-			.pCode = (uint32_t*)file.data,
+			.codeSize = utilFile.size,
+			.pCode = (uint32_t*)utilFile.data,
 		};
 
 		result = vkCreateShaderModule(device, &shaderModuleCreateInfo, NULL, &shaderModule);
 		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result));
 
-		utilfile_free(file);
+		utilfile_destroy(&utilFile);
+	}
+
+	VkPipeline pipeline;
+	{	
+		VkComputePipelineCreateInfo computePipelineCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+		};
+
+		vkCreateComputePipelines(device, NULL, 1, &computePipelineCreateInfo, NULL, &pipeline);
+
 	}
 
 	// Record command buffer
