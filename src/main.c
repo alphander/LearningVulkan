@@ -33,7 +33,7 @@ int main()
 	};
 	const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
 
-	VkResult result; // Reusable
+	VkResult result = NULL; // Reusable
 
 	// ####################################################################################################
 	// VkInstance
@@ -98,8 +98,7 @@ int main()
 			VkPhysicalDeviceProperties physicalDeviceProperties = physicalDevicePropertiesArray[i]; 
 			VkPhysicalDeviceFeatures physicalDeviceFeatures = physicalDeviceFeaturesArray[i];
 			print("  %s:\n", physicalDeviceProperties.deviceName);
-			print("    - Device Type: \"%s\"\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
-			print("\n");
+			print("    - Device Type: \"%s\"\n\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
 		}
 	}
 
@@ -246,39 +245,37 @@ int main()
 		};
 
 		result = vkCreateShaderModule(device, &shaderModuleCreateInfo, NULL, &shaderModule);
-		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkCreateShaderModule! VkResult: %s\n", result_to_name(result));
 
 		utilfile_destroy(&utilFile);
 	}
 
 	VkPipeline pipeline;
 	{	
+		VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+		};
+
 		VkComputePipelineCreateInfo computePipelineCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
 		};
 
-		vkCreateComputePipelines(device, NULL, 1, &computePipelineCreateInfo, NULL, &pipeline);
-
+		result = vkCreateComputePipelines(device, NULL, 1, &computePipelineCreateInfo, NULL, &pipeline);
+		if (result != VK_SUCCESS) error("Problem at vkCreateComputePipelines! VkResult: %s\n", result_to_name(result));
 	}
 
 	// Record command buffer
-	// {
-	// 	VkCommandBufferInheritanceInfo commandBufferInheritanceInfo =
-	// 	{
-	// 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
-	// 		.
-	// 	};
+	{
+		VkCommandBufferBeginInfo commandBufferBeginInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		};
 
-	// 	VkCommandBufferBeginInfo commandBufferBeginInfo = 
-	// 	{
-	// 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-	// 		.pInheritanceInfo = &commandBufferInheritanceInfo,
-	// 	};
-
-	// 	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-	// }
-
+		result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+		if (result != VK_SUCCESS) error("Problem at vkBeginCommandBuffer! VkResult: %s\n", result_to_name(result));
+	}
 
 	// ####################################################################################################
 	//	Cleanup

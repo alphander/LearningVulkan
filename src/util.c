@@ -188,7 +188,7 @@ void utilfile_create(UtilFile* utilFile, const char* path)
 	utilFile->data = fileBuffer;
 }
 
-void utilfile_destroy(UtilFile* file)
+void utilfile_destroy(UtilFile* utilFile)
 {
-	free(file->data);
+	free(utilFile->data);
 }
