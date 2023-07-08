@@ -136,7 +136,7 @@ int main()
 					physicalDevice = physicalDeviceArray[i];
 					queueFamilyIndex = j;
 				}
-				else 
+				else
 				{
 					print(" NOT VALID\n");
 				}
@@ -155,7 +155,7 @@ int main()
 			}
 		}
 
-		if (physicalDevice == NULL) error("No valid queues!");
+		if (physicalDevice == NULL) error("No valid queues!"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
@@ -173,7 +173,6 @@ int main()
 			.queueFamilyIndex = queueFamilyIndex,
 		};
 
-	
 		VkDeviceCreateInfo deviceCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -203,7 +202,7 @@ int main()
 		};
 
 		result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
-		if (result != VK_SUCCESS) error("Problem at vkCreateCommandPool! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkCreateCommandPool! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
@@ -222,7 +221,7 @@ int main()
 		};
 
 		result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
-		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
@@ -245,9 +244,20 @@ int main()
 		};
 
 		result = vkCreateShaderModule(device, &shaderModuleCreateInfo, NULL, &shaderModule);
-		if (result != VK_SUCCESS) error("Problem at vkCreateShaderModule! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkCreateShaderModule! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 
 		utilfile_destroy(&utilFile);
+	}
+
+	VkPipelineLayout pipelineLayout;
+	{
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+		};
+
+		result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
+		if (result != VK_SUCCESS) error("Problem at vkCreatePipelineLayout! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	VkPipeline pipeline;
@@ -255,15 +265,20 @@ int main()
 		VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+			.stage = VK_SHADER_STAGE_COMPUTE_BIT,
+			.module = shaderModule,
+			.pName = "main",
 		};
 
 		VkComputePipelineCreateInfo computePipelineCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+			.stage = pipelineShaderStageCreateInfo,
+			.layout = pipelineLayout,
 		};
 
 		result = vkCreateComputePipelines(device, NULL, 1, &computePipelineCreateInfo, NULL, &pipeline);
-		if (result != VK_SUCCESS) error("Problem at vkCreateComputePipelines! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkCreateComputePipelines! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// Record command buffer
@@ -274,7 +289,7 @@ int main()
 		};
 
 		result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-		if (result != VK_SUCCESS) error("Problem at vkBeginCommandBuffer! VkResult: %s\n", result_to_name(result));
+		if (result != VK_SUCCESS) error("Problem at vkBeginCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
