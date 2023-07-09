@@ -33,7 +33,7 @@ int main()
 	};
 	const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
 
-	VkResult result = NULL; // Reusable
+	VkResult result; // Reusable
 
 	// ####################################################################################################
 	// VkInstance
@@ -91,6 +91,7 @@ int main()
 			vkGetPhysicalDeviceFeatures(physicalDeviceArray[i], &physicalDeviceFeaturesArray[i]);
 		}
 
+		// Print VkPhysicalDeviceProperties and VkPhysicalDeviceFeatures arrays
 		print("\nPhysical Device List:\n");
 		print("-------------------------------------------------------------------------\n");
 		for (int i = 0; i < physicalDeviceCount; i++)
@@ -129,8 +130,8 @@ int main()
 
 				print("   -Queue Family Index %i:", j);
 
-				if (currentQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT &&
-					currentPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+				if (currentQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT //&&
+					/*currentPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU*/)
 				{
 					print(" VALID\n");
 					physicalDevice = physicalDeviceArray[i];
@@ -156,6 +157,8 @@ int main()
 		}
 
 		if (physicalDevice == NULL) error("No valid queues!"); // ERROR HANDLING
+
+		print("Chose Queue Family: %d\n", queueFamilyIndex);
 	}
 
 	// ####################################################################################################
@@ -302,4 +305,5 @@ int main()
 	vkDestroyCommandPool(device, commandPool, NULL);
 	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);
+	
 }

@@ -10,7 +10,7 @@ typedef struct UtilFile
 	char* data;
 } UtilFile;
 
-char* result_to_name(uint32_t result)
+char* result_to_name(VkResult result)
 {
 	switch(result)
 	{
@@ -110,10 +110,12 @@ char* result_to_name(uint32_t result)
 			return "VK_ERROR_COMPRESSION_EXHAUSTED_EXT";
     	case VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT:
 			return "VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT";
+		case VK_RESULT_MAX_ENUM:
+			return "VK_RESULT_MAX_ENUM";
 	}
 }
 
-void queue_flags_to_name(uint32_t queueFlags, uint32_t* queueFlagCount, char** flagArray)
+void queue_flags_to_name(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char** flagArray)
 {
 	const int maxFlags = 8;
 
@@ -142,7 +144,7 @@ void queue_flags_to_name(uint32_t queueFlags, uint32_t* queueFlagCount, char** f
 	*queueFlagCount = i;
 }
 
-char* physical_device_type_to_name(int physicalDeviceType)
+char* physical_device_type_to_name(VkPhysicalDeviceType physicalDeviceType)
 {
 	switch(physicalDeviceType)
 	{
