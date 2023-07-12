@@ -16,7 +16,8 @@ DEFINES:=
 
 LDFLAGS:=-lvulkan-1
 
-LIBFILES:=$(wildcard $(LIB)/**/*.a)
+LIBFILES:=\
+	$(LIB)/GLFW/libglfw3.a
 
 CFLAGS_ND:=-Wall -O2 -std=c17 -DNDEBUG
 CFLAGS_D:=-Wall -g -O0 -std=c17 -DDEBUG 

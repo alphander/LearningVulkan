@@ -1,9 +1,12 @@
+// !! Headers in required order !!
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.h> 
+#include <GLFW/glfw3.h>
 
 // #define DISABLE_ERROR_LOGGING
 // #define DISABLE_FINISH_LOGGING
@@ -16,10 +19,6 @@
 
 int main()
 {
-	// ####################################################################################################
-	//	Vulkan Setup
-	//
-	// ####################################################################################################
 
 	const char* enabledLayerArray[] = 
 	{
@@ -33,7 +32,16 @@ int main()
 	};
 	const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
 
+
 	VkResult result; // Reusable
+
+	// ####################################################################################################
+	//	Glfw Setup
+	//
+	// ####################################################################################################
+
+
+
 
 	// ####################################################################################################
 	// VkInstance
@@ -107,6 +115,7 @@ int main()
 	// VkPhysicalDevice selection
 
 	VkPhysicalDevice physicalDevice = NULL;
+	VkPhysicalDeviceProperties physicalDeviceProperties;
 	uint32_t queueFamilyIndex = 0;
 
 	// Select physical device and select queue family
@@ -135,6 +144,7 @@ int main()
 				{
 					print(" VALID\n");
 					physicalDevice = physicalDeviceArray[i];
+					physicalDeviceProperties = physicalDevicePropertiesArray[i];
 					queueFamilyIndex = j;
 				}
 				else
@@ -160,6 +170,8 @@ int main()
 
 		print("Chose Queue Family: %d\n", queueFamilyIndex);
 	}
+
+	print("Max bound descriptor sets: %i", physicalDeviceProperties.limits.maxBoundDescriptorSets);
 
 	// ####################################################################################################
 	// vkDevice and VkQueue
@@ -209,25 +221,6 @@ int main()
 	}
 
 	// ####################################################################################################
-	// Command Buffer
-
-	VkCommandBuffer commandBuffer;
-
-	// Allocate a main command buffer
-	{
-		VkCommandBufferAllocateInfo commandBufferAllocateInfo = 
-		{
-			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-			.commandPool = commandPool,
-			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-			.commandBufferCount = 1,
-		};
-
-		result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
-		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
-	}
-
-	// ####################################################################################################
 	// Shader Module
 
 	VkShaderModule shaderModule;
@@ -252,7 +245,14 @@ int main()
 		utilfile_destroy(&utilFile);
 	}
 
+	VkDescriptorSet descriptorSet;
+
+	{
+
+	}
+
 	VkPipelineLayout pipelineLayout;
+
 	{
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = 
 		{
@@ -264,6 +264,7 @@ int main()
 	}
 
 	VkPipeline pipeline;
+
 	{	
 		VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo = 
 		{
@@ -284,7 +285,26 @@ int main()
 		if (result != VK_SUCCESS) error("Problem at vkCreateComputePipelines! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
-	// Record command buffer
+	// ####################################################################################################
+	// Command Buffer
+
+	VkCommandBuffer commandBuffer;
+
+	// Allocate a main command buffer
+	{
+		VkCommandBufferAllocateInfo commandBufferAllocateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			.commandPool = commandPool,
+			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			.commandBufferCount = 1,
+		};
+
+		result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
+		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+	}
+
+	// Record command buffer	
 	{
 		VkCommandBufferBeginInfo commandBufferBeginInfo = 
 		{
@@ -293,6 +313,26 @@ int main()
 
 		result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 		if (result != VK_SUCCESS) error("Problem at vkBeginCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+	}
+
+	// End command buffer
+	{
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+	
+		result = vkEndCommandBuffer(commandBuffer);
+		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+	}
+
+	// Submit command buffer
+	{
+		VkSubmitInfo submitInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+			.pCommandBuffers = &commandBuffer,
+			.commandBufferCount = 1,
+		};
+
+		vkQueueSubmit(queue, 1, &submitInfo, NULL);
 	}
 
 	// ####################################################################################################
