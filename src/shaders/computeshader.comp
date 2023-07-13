@@ -1,7 +1,8 @@
 #version 460
 #include "shaderinclude.glsl"
-// Add include capability to vscode plugin
 
+layout(binding = 0) // some sort of input
+layout(binding = 1) // some sort of output
 
 void main()
 {

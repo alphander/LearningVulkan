@@ -19,7 +19,6 @@
 
 int main()
 {
-
 	const char* enabledLayerArray[] = 
 	{
 		"VK_LAYER_KHRONOS_validation",
@@ -34,14 +33,6 @@ int main()
 
 
 	VkResult result; // Reusable
-
-	// ####################################################################################################
-	//	Glfw Setup
-	//
-	// ####################################################################################################
-
-
-
 
 	// ####################################################################################################
 	// VkInstance
@@ -171,7 +162,7 @@ int main()
 		print("Chose Queue Family: %d\n", queueFamilyIndex);
 	}
 
-	print("Max bound descriptor sets: %i", physicalDeviceProperties.limits.maxBoundDescriptorSets);
+	print("Max bound descriptor sets: %i\n", physicalDeviceProperties.limits.maxBoundDescriptorSets);
 
 	// ####################################################################################################
 	// vkDevice and VkQueue
@@ -245,10 +236,43 @@ int main()
 		utilfile_destroy(&utilFile);
 	}
 
+	VkDescriptorPool descriptorPool;
+
+	{
+
+		VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+			.
+		};
+
+		vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
+	}
+
 	VkDescriptorSet descriptorSet;
 
 	{
 
+		const VkDescriptorSetLayoutBinding descriptorSetLayoutBinding[] = 
+		{
+			{
+				.binding = 0,
+				.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+				.descriptorCount = 1,
+				.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+				.pImmutableSamplers = NULL,
+			}
+		};
+
+
+		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+			.descriptorSetCount = 1,
+			.pSetLayouts = descriptorSetLayoutBinding,
+		};
+
+		vkAllocateDescriptorSets(device, NULL, &descriptorSet);
 	}
 
 	VkPipelineLayout pipelineLayout;
@@ -340,6 +364,7 @@ int main()
 	//
 	// ####################################################################################################
 
+	vkDestroyDescriptorSet
 	vkDestroyShaderModule(device, shaderModule, NULL);
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 	vkDestroyCommandPool(device, commandPool, NULL);

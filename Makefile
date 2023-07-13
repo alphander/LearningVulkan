@@ -14,7 +14,7 @@ LIBS:=-L"C:/Program Files/VulkanSDK/1.3.250.1/Lib"
 
 DEFINES:=
 
-LDFLAGS:=-lvulkan-1
+LDFLAGS:=-lvulkan-1 -lglfw3
 
 LIBFILES:=\
 	$(LIB)/GLFW/libglfw3.a
