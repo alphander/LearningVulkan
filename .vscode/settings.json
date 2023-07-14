@@ -5,6 +5,11 @@
         "stdint.h": "c",
         "stdbool.h": "c",
         "logging.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "profiling.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "string.h": "c",
+        "assert.h": "c"
     }
 }

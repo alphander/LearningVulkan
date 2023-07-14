@@ -5,17 +5,16 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <vulkan/vulkan.h> 
-#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
 
 // #define DISABLE_ERROR_LOGGING
 // #define DISABLE_FINISH_LOGGING
 // #define DISABLE_LOG_LOGGING
 // #define DISABLE_PRINT_LOGGING
 
-#include "logging/logging.h"
-#include "util.h"
-#include "profiling.h"
+#include "util/logging.h"
+#include "util/util.h"
+#include "util/profiling.h"
 
 int main()
 {
@@ -30,8 +29,6 @@ int main()
 
 	};
 	const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
-
-	if (!glfwInit()) error("OOPS");
 
 
 	VkResult result; // Reusable
@@ -262,14 +259,16 @@ int main()
 	{
 		VkDescriptorPoolSize descriptorPoolSize = 
 		{
-			.type = VK_
+			.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+			.descriptorCount = 1,
 		};
 
 		VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 			.maxSets = 1,
-			.
+			.pPoolSizes = &descriptorPoolSize,
+			.poolSizeCount = 1,
 		};
 
 		vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
@@ -282,7 +281,7 @@ int main()
 		{
 			{
 				.binding = 0,
-				.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+				.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 				.descriptorCount = 1,
 				.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 				.pImmutableSamplers = NULL,
@@ -360,6 +359,8 @@ int main()
 		if (result != VK_SUCCESS) error("Problem at vkBeginCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+
+		// vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ); TODO
 	
 		result = vkEndCommandBuffer(commandBuffer);
 		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING

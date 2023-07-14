@@ -9,26 +9,26 @@ GLSLC=glslc
 RM:=del
 OUT:=a.exe
 
-INCLUDES:=-I"C:/Program Files/VulkanSDK/1.3.250.1/Include"
-LIBS:=-L"C:/Program Files/VulkanSDK/1.3.250.1/Lib"
+INCLUDES:=\
+	-I./$(INCLUDE)\
+	-I./$(SRC) -I"C:/Program Files/VulkanSDK/1.3.250.1/Include"
+
+LIBS:=\
+	-L./$(LIB)\
+	-L"C:/Program Files/VulkanSDK/1.3.250.1/Lib" 
 
 DEFINES:=
 
-LDFLAGS:=-lvulkan-1 -lglfw3
-
-LIBFILES:=\
-	$(LIB)/GLFW/libglfw3.a
+LDFLAGS:=-lvulkan-1
 
 CFLAGS_ND:=-Wall -O2 -std=c17 -DNDEBUG
 CFLAGS_D:=-Wall -g -O0 -std=c17 -DDEBUG 
 
-# [Default Settings]
-INCLUDES+=-I./$(INCLUDE) -I./$(SRC)
-LIBS+=-L./$(LIB)
+GLSLFLAGS:=-std=460
 
 # [Debug and Release rules]
 
-.PHONY: debug release clean build all
+.PHONY: debug release clean build all GLSL
 
 all: debug
 
@@ -43,7 +43,7 @@ build: $(OUT) GLSL
 
 # [Compile program]
 
-ASSEMBLE=$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(LIBFILES) $(LDFLAGS)
+ASSEMBLE=$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(LDFLAGS)
 COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
 
 # C Compile
@@ -51,27 +51,32 @@ COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
 $(OUT):\
 	$(OBJ)/main.o\
 	$(OBJ)/logging.o\
-	$(OBJ)/util.o
+	$(OBJ)/util.o\
+	$(OBJ)/initvulkan.o
 	$(ASSEMBLE)
 
 $(OBJ)/main.o:\
 	$(SRC)/main.c\
-	$(SRC)/logging/logging.h\
-	$(SRC)/util.h
+	$(SRC)/util/logging.h\
+	$(SRC)/util/util.h
 	$(COMPILE)
 
 $(OBJ)/logging.o:\
-	$(SRC)/logging/logging.c
+	$(SRC)/util/logging.c
 	$(COMPILE)
 
 $(OBJ)/util.o:\
-	$(SRC)/util.c\
-	$(SRC)/logging/logging.h
+	$(SRC)/util/util.c\
+	$(SRC)/util/logging.h
+	$(COMPILE)
+
+$(OBJ)/initvulkan.o:\
+	$(SRC)/implementation/initvulkan.c
 	$(COMPILE)
 
 # GLSL Compile 
 
-COMPILE_GLSL=$(GLSLC) -c $< -o $@
+COMPILE_GLSL=$(GLSLC) $(GLSLFLAGS) -c $< -o $@
 
 GLSL:\
 	$(OUT) $(OBJ)/computeshader.spv

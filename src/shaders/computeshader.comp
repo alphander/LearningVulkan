@@ -1,5 +1,4 @@
-#version 460
-#include "shaderinclude.glsl"
+#include "shaderinclude.comp"
 
 layout(binding = 0) // some sort of input
 layout(binding = 1) // some sort of output
