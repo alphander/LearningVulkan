@@ -1,8 +1,8 @@
 #pragma once
 
-void setup_vulkan(char* const enabledLayerArray[], 
+void setup_vulkan(const char* const enabledLayerArray[], 
 				  uint32_t enabledLayerCount, 
-				  char* const enabledExtensionArray[], 
+				  const char* const enabledExtensionArray[], 
 				  uint32_t enabledExtensionCount,
 				  VkDevice* pDevice, 
 				  VkQueue* pQueue, 

@@ -52,7 +52,8 @@ $(OUT):\
 	$(OBJ)/main.o\
 	$(OBJ)/logging.o\
 	$(OBJ)/util.o\
-	$(OBJ)/vulkan_setup.o
+	$(OBJ)/vulkan_setup.o\
+	$(OBJ)/vulkan_buffer.o
 	$(ASSEMBLE)
 
 $(OBJ)/main.o:\
@@ -73,6 +74,12 @@ $(OBJ)/util.o:\
 
 $(OBJ)/vulkan_setup.o:\
 	$(SRC)/impl/vulkan_setup.c\
+	$(SRC)/util/logging.h\
+	$(SRC)/util/util.h
+	$(COMPILE)
+
+$(OBJ)/vulkan_buffer.o:\
+	$(SRC)/impl/vulkan_buffer.c\
 	$(SRC)/util/logging.h\
 	$(SRC)/util/util.h
 	$(COMPILE)

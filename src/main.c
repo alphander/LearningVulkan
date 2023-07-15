@@ -30,8 +30,26 @@ const char* const enabledExtensionArray[] =
 };
 const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
 
+static void create_descriptor_set(VkDescriptorSet* descriptorSet,
+								  VkDevice device,
+								  VkDescriptorPool descriptorPool,
+								  VkDescriptorSetLayout descriptorSetLayout)
+{
+	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
+	{
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.descriptorPool = descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = &descriptorSetLayout,
+	};
+
+	vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
+}
+
 int main()
 {
+	// ################################################################################
+	// Setup vulkan
 
 	VkInstance instance;
 	VkPhysicalDevice physicalDevice;
@@ -41,13 +59,13 @@ int main()
 	
 	setup_vulkan(enabledLayerArray, enabledLayerCount, enabledExtensionArray, enabledExtensionCount, &device, &queue, &commandPool);
 
+
 	VkResult result;
 
-	// ####################################################################################################
+	// ################################################################################
 	// Create VkShaderModule
 
 	VkShaderModule shaderModule;
-
 	{
 		const char* filePath = "obj/computeshader.spv";
 
@@ -68,11 +86,10 @@ int main()
 		utilfile_destroy(&utilFile);
 	}
 
-	// ####################################################################################################
+	// ################################################################################
 	// Create VkBuffer
 
 	VkBuffer buffer;
-
 	{
 		VkBufferCreateInfo bufferInfo = 
 		{
@@ -85,7 +102,7 @@ int main()
 		vkCreateBuffer(device, &bufferInfo, NULL, &buffer);	
 	}
 
-	// ####################################################################################################
+	// ################################################################################
 	// Create VkDescriptorPool
 
 	VkDescriptorPool descriptorPool;
@@ -107,10 +124,9 @@ int main()
 		vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
 	}
 
-	VkDescriptorSet descriptorSet;
+	VkDescriptorSetLayout descriptorSetLayout;
 	{
-
-		const VkDescriptorSetLayoutBinding descriptorSetLayoutBinding[] = 
+		const VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[] = 
 		{
 			{
 				.binding = 0,
@@ -121,22 +137,26 @@ int main()
 			}
 		};
 
-
-		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = 
 		{
-			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-			.descriptorSetCount = 1,
-			.pSetLayouts = descriptorSetLayoutBinding,
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+			.pBindings = descriptorSetLayoutBindings,
+			.bindingCount = 1,
 		};
 
-		vkAllocateDescriptorSets(device, NULL, &descriptorSet);
+		vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayout);
 	}
+
+	VkDescriptorSet descriptorSet;
+	create_descriptor_set(&descriptorSet, device, descriptorPool, descriptorSetLayout);
 
 	VkPipelineLayout pipelineLayout;
 	{
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+			.setLayoutCount = 1,
+			.pSetLayouts = &descriptorSetLayout,
 		};
 
 		result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
@@ -164,7 +184,7 @@ int main()
 		if (result != VK_SUCCESS) error("Problem at vkCreateComputePipelines! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
-	// ####################################################################################################
+	// ################################################################################
 	// Command Buffer
 
 	VkCommandBuffer commandBuffer;
@@ -194,6 +214,8 @@ int main()
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
 		// vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ); TODO
+
+		vkCmdDispatch(commandBuffer, 32, 32, 0);
 	
 		result = vkEndCommandBuffer(commandBuffer);
 		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
@@ -211,14 +233,14 @@ int main()
 		vkQueueSubmit(queue, 1, &submitInfo, NULL);
 	}
 
-	// ####################################################################################################
+	// ################################################################################
 	//	Cleanup
 	//
-	// ####################################################################################################
+	// ################################################################################
 
 	vkFreeDescriptorSets(device, descriptorPool, 1, &descriptorSet);
 	vkDestroyShaderModule(device, shaderModule, NULL);
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-	
+
 	cleanup_vulkan(&instance, &device, &commandPool);
 }

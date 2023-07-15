@@ -11,7 +11,7 @@ static void select_physical_device(uint32_t physicalDeviceCount,
 								   VkPhysicalDeviceProperties* pPhysicalDeviceProperties, 
 								   uint32_t* pQueueFamilyIndex)
 {
-	// ####################################################################################################
+	// ################################################################################
 	// VkPhysicalDeviceProperties
 	
 	VkPhysicalDeviceProperties physicalDevicePropertiesArray[physicalDeviceCount];
@@ -105,9 +105,9 @@ static void print_physical_device_stats(VkPhysicalDeviceProperties* pPhysicalDev
 // ################################################################################
 // Public functions
 
-void setup_vulkan(char* const enabledLayerArray[], 
+void setup_vulkan(const char* const enabledLayerArray[], 
 				  uint32_t enabledLayerCount, 
-				  char* const enabledExtensionArray[], 
+				  const char* const enabledExtensionArray[], 
 				  uint32_t enabledExtensionCount,
 				  VkInstance* pInstance,
 				  VkPhysicalDevice* pPhysicalDevice,
@@ -117,7 +117,7 @@ void setup_vulkan(char* const enabledLayerArray[],
 {
 	VkResult result; // Reusable
 
-	// ####################################################################################################
+	// ################################################################################
 	// VkInstance
 
 	VkInstance instance;
@@ -138,18 +138,17 @@ void setup_vulkan(char* const enabledLayerArray[],
 		{
 			.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 			.pApplicationInfo = &applicationInfo,
-			.enabledExtensionCount = enabledExtensionCount,
-			.ppEnabledExtensionNames = enabledExtensionArray,
 			.enabledLayerCount = enabledLayerCount,
 			.ppEnabledLayerNames = enabledLayerArray,
+			.enabledExtensionCount = enabledExtensionCount,
+			.ppEnabledExtensionNames = enabledExtensionArray,
 		};
-
 
 		result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
 		if (result != VK_SUCCESS) error("Problem at vkCreateInstance! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
-	// ####################################################################################################
+	// ################################################################################
 	// VkPhysicalDevice
 
 	uint32_t physicalDeviceCount;
@@ -159,7 +158,7 @@ void setup_vulkan(char* const enabledLayerArray[],
 	result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDeviceArray);
 	if (result != VK_SUCCESS) error("Problem at vkEnumeratePhysicalDevices! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 
-	// ####################################################################################################
+	// ################################################################################
 	// VkPhysicalDevice selection
 
 	VkPhysicalDevice physicalDevice = NULL;
@@ -170,7 +169,7 @@ void setup_vulkan(char* const enabledLayerArray[],
 	select_physical_device(physicalDeviceCount, physicalDeviceArray, &physicalDevice, &physicalDeviceProperties, &queueFamilyIndex);
 	print_physical_device_stats(&physicalDeviceProperties);
 
-	// ####################################################################################################
+	// ################################################################################
 	// vkDevice and VkQueue
 
 	VkDevice device;
@@ -200,7 +199,7 @@ void setup_vulkan(char* const enabledLayerArray[],
 
 	vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
-	// ####################################################################################################
+	// ################################################################################
 	// Command Pool
 
 	VkCommandPool commandPool;
