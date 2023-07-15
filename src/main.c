@@ -57,7 +57,8 @@ int main()
 	VkQueue queue;
 	VkCommandPool commandPool;
 	
-	setup_vulkan(enabledLayerArray, enabledLayerCount, enabledExtensionArray, enabledExtensionCount, &device, &queue, &commandPool);
+	setup_vulkan(enabledLayerArray, enabledLayerCount, enabledExtensionArray, enabledExtensionCount,
+				 &instance, &physicalDevice, &device, &queue, &commandPool);
 
 
 	VkResult result;
@@ -119,6 +120,7 @@ int main()
 			.maxSets = 1,
 			.pPoolSizes = &descriptorPoolSize,
 			.poolSizeCount = 1,
+			.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
 		};
 
 		vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
@@ -215,7 +217,7 @@ int main()
 
 		// vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ); TODO
 
-		vkCmdDispatch(commandBuffer, 32, 32, 0);
+		// vkCmdDispatch(commandBuffer, 32, 32, 0);
 	
 		result = vkEndCommandBuffer(commandBuffer);
 		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
