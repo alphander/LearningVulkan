@@ -30,21 +30,6 @@ const char* const enabledExtensionArray[] =
 };
 const uint32_t enabledExtensionCount = (uint32_t) (sizeof(enabledExtensionArray) / sizeof(char*));
 
-static void create_descriptor_set(VkDescriptorSet* descriptorSet,
-								  VkDevice device,
-								  VkDescriptorPool descriptorPool,
-								  VkDescriptorSetLayout descriptorSetLayout)
-{
-	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
-	{
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-		.descriptorPool = descriptorPool,
-		.descriptorSetCount = 1,
-		.pSetLayouts = &descriptorSetLayout,
-	};
-
-	vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
-}
 
 int main()
 {
@@ -150,7 +135,17 @@ int main()
 	}
 
 	VkDescriptorSet descriptorSet;
-	create_descriptor_set(&descriptorSet, device, descriptorPool, descriptorSetLayout);
+	{
+		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+			.descriptorPool = descriptorPool,
+			.descriptorSetCount = 1,
+			.pSetLayouts = &descriptorSetLayout,
+		};
+
+		vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
+	}
 
 	VkPipelineLayout pipelineLayout;
 	{
@@ -215,15 +210,25 @@ int main()
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
-		// vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ); TODO
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, NULL);
 
-		// vkCmdDispatch(commandBuffer, 32, 32, 0);
+		vkCmdDispatch(commandBuffer, 1024, 0, 0);
 	
 		result = vkEndCommandBuffer(commandBuffer);
 		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// Submit command buffer
+	VkFence fence;
+	{
+		VkFenceCreateInfo fenceCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		};
+
+		vkCreateFence(device, &fenceCreateInfo, NULL, &fence);
+	}
+
 	{
 		VkSubmitInfo submitInfo = 
 		{
@@ -232,7 +237,9 @@ int main()
 			.commandBufferCount = 1,
 		};
 
-		vkQueueSubmit(queue, 1, &submitInfo, NULL);
+		vkQueueSubmit(queue, 1, &submitInfo, fence);
+
+		vkWaitForFences(device, 1, &fence, VK_TRUE, 10000000);
 	}
 
 	// ################################################################################
@@ -240,9 +247,15 @@ int main()
 	//
 	// ################################################################################
 
+	vkDestroyFence(device, fence, NULL);
+	vkDestroyBuffer(device, buffer, NULL);
+	vkDestroyPipeline(device, pipeline, NULL);
+	vkDestroyPipelineLayout(device, pipelineLayout, NULL);
 	vkFreeDescriptorSets(device, descriptorPool, 1, &descriptorSet);
-	vkDestroyShaderModule(device, shaderModule, NULL);
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, NULL);
+	vkDestroyDescriptorPool(device, descriptorPool, NULL);
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+	vkDestroyShaderModule(device, shaderModule, NULL);
 
 	cleanup_vulkan(&instance, &device, &commandPool);
 }
