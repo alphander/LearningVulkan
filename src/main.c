@@ -85,7 +85,8 @@ int main()
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		};
 
-		vkCreateBuffer(device, &bufferInfo, NULL, &buffer);	
+		result = vkCreateBuffer(device, &bufferInfo, NULL, &buffer);	
+		if (result != VK_SUCCESS) error("Problem at vkCreateBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// ################################################################################
@@ -108,7 +109,8 @@ int main()
 			.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
 		};
 
-		vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
+		result = vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
+		if (result != VK_SUCCESS) error("Problem at vkCreateDescriptorPool! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	VkDescriptorSetLayout descriptorSetLayout;
@@ -131,7 +133,9 @@ int main()
 			.bindingCount = 1,
 		};
 
-		vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayout);
+		result = vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayout);
+		if (result != VK_SUCCESS) error("Problem at vkCreateDescriptorSetLayout! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+
 	}
 
 	VkDescriptorSet descriptorSet;
@@ -144,7 +148,8 @@ int main()
 			.pSetLayouts = &descriptorSetLayout,
 		};
 
-		vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
+		result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
+		if (result != VK_SUCCESS) error("Problem at vkAllocateDescriptorSets! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	VkPipelineLayout pipelineLayout;
@@ -226,7 +231,8 @@ int main()
 			.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
 		};
 
-		vkCreateFence(device, &fenceCreateInfo, NULL, &fence);
+		result = vkCreateFence(device, &fenceCreateInfo, NULL, &fence);
+		if (result != VK_SUCCESS) error("Problem at vkCreateFence! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	{
@@ -237,9 +243,11 @@ int main()
 			.commandBufferCount = 1,
 		};
 
-		vkQueueSubmit(queue, 1, &submitInfo, fence);
+		result = vkQueueSubmit(queue, 1, &submitInfo, fence);
+		if (result != VK_SUCCESS) error("Problem at vkQueueSubmit! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 
-		vkWaitForFences(device, 1, &fence, VK_TRUE, 10000000);
+		result = vkWaitForFences(device, 1, &fence, VK_TRUE, 10000000);
+		if (result != VK_SUCCESS) error("Problem at vkWaitForFences! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
 	// ################################################################################
