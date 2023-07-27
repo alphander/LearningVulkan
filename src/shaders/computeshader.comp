@@ -1,9 +1,18 @@
 #include "shaderinclude.comp"
 
-layout(binding = 0) // some sort of input
-layout(binding = 1) // some sort of output
+layout(set = 0, binding = 0) buffer InputBuffer 
+{
+    int inData[DATA_SIZE];
+};
+
+layout(set = 0, binding = 1) buffer OutputBuffer
+{
+    int outData[DATA_SIZE];
+};
 
 void main()
 {
-    
+    uint index = gl_GlobalInvocationID.x;
+
+    outData[index] = inData[index] + 100;
 }

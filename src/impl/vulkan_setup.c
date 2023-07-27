@@ -17,7 +17,6 @@ static void select_physical_device(uint32_t physicalDeviceCount,
 	VkPhysicalDeviceProperties physicalDevicePropertiesArray[physicalDeviceCount];
 	VkPhysicalDeviceFeatures physicalDeviceFeaturesArray[physicalDeviceCount];
 
-	// Populate VkPhysicalDeviceProperties array and populate VkPhysicalDeviceFeatures array
 	{
 		for (int i = 0; i < physicalDeviceCount; i++)
 		{
@@ -25,7 +24,6 @@ static void select_physical_device(uint32_t physicalDeviceCount,
 			vkGetPhysicalDeviceFeatures(physicalDeviceArray[i], &physicalDeviceFeaturesArray[i]);
 		}
 
-		// Print VkPhysicalDeviceProperties and VkPhysicalDeviceFeatures arrays
 		print("\nPhysical Device List:\n");
 		print("-------------------------------------------------------------------------\n");
 		for (int i = 0; i < physicalDeviceCount; i++)
@@ -105,7 +103,7 @@ static void print_physical_device_stats(VkPhysicalDeviceProperties* pPhysicalDev
 // ################################################################################
 // Public functions
 
-void setup_vulkan(const char* const enabledLayerArray[], 
+void vulkan_setup(const char* const enabledLayerArray[], 
 				  uint32_t enabledLayerCount, 
 				  const char* const enabledExtensionArray[], 
 				  uint32_t enabledExtensionCount,
@@ -224,7 +222,7 @@ void setup_vulkan(const char* const enabledLayerArray[],
 	*pCommandPool = commandPool;
 }
 
-void cleanup_vulkan(VkInstance* pInstance,
+void vulkan_cleanup(VkInstance* pInstance,
 				  	VkDevice* pDevice, 
 				  	VkCommandPool* pCommandPool)
 {

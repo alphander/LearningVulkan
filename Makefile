@@ -60,7 +60,8 @@ $(OBJ)/main.o:\
 	$(SRC)/main.c\
 	$(SRC)/util/logging.h\
 	$(SRC)/util/util.h\
-	$(SRC)/impl/vulkan_setup.h
+	$(SRC)/impl/vulkan_setup.h\
+	$(SRC)/impl/vulkan_buffer.h
 	$(COMPILE)
 
 $(OBJ)/logging.o:\

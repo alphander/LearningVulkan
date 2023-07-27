@@ -17,6 +17,7 @@
 #include "util/profiling.h"
 
 #include "impl/vulkan_setup.h"
+#include "impl/vulkan_buffer.h"
 
 const char* const enabledLayerArray[] = 
 {
@@ -42,9 +43,28 @@ int main()
 	VkQueue queue;
 	VkCommandPool commandPool;
 	
-	setup_vulkan(enabledLayerArray, enabledLayerCount, enabledExtensionArray, enabledExtensionCount,
+	vulkan_setup(enabledLayerArray, enabledLayerCount, enabledExtensionArray, enabledExtensionCount,
 				 &instance, &physicalDevice, &device, &queue, &commandPool);
 
+	VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+
+	for (int i = 0; i < VK_MAX_MEMORY_TYPES; i++)
+	{
+		VkMemoryType memoryType = physicalDeviceMemoryProperties.memoryTypes[i];
+		uint32_t memoryTypeFlagCount;
+		memory_type_to_name(memoryType.propertyFlags, &memoryTypeFlagCount, NULL);
+		char* memoryTypeArray[memoryTypeFlagCount];
+		memory_type_to_name(memoryType.propertyFlags, &memoryTypeFlagCount, memoryTypeArray);
+
+		print("%i\n", i);
+
+		for (int j = 0; j < memoryTypeFlagCount; j++)
+		{
+			print("    %s\n", memoryTypeArray[j]);
+		}
+	}
+
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
 
 	VkResult result;
 
@@ -75,19 +95,8 @@ int main()
 	// ################################################################################
 	// Create VkBuffer
 
-	VkBuffer buffer;
-	{
-		VkBufferCreateInfo bufferInfo = 
-		{
-			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-			.size = 10000 * sizeof(float),
-			.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-		};
-
-		result = vkCreateBuffer(device, &bufferInfo, NULL, &buffer);	
-		if (result != VK_SUCCESS) error("Problem at vkCreateBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
-	}
+	// VkBuffer buffer;
+	// vulkan_buffer_create(&buffer, device);
 
 	// ################################################################################
 	// Create VkDescriptorPool
@@ -165,6 +174,9 @@ int main()
 		if (result != VK_SUCCESS) error("Problem at vkCreatePipelineLayout! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
+	// ################################################################################
+	// Create VkPipeline
+
 	VkPipeline pipeline;
 	{	
 		VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo = 
@@ -187,7 +199,7 @@ int main()
 	}
 
 	// ################################################################################
-	// Command Buffer
+	// Create VkCommandBuffer
 
 	VkCommandBuffer commandBuffer;
 	{
@@ -223,7 +235,9 @@ int main()
 		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
 
-	// Submit command buffer
+	// ################################################################################
+	// Create VkFence
+
 	VkFence fence;
 	{
 		VkFenceCreateInfo fenceCreateInfo = 
@@ -234,6 +248,8 @@ int main()
 		result = vkCreateFence(device, &fenceCreateInfo, NULL, &fence);
 		if (result != VK_SUCCESS) error("Problem at vkCreateFence! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
 	}
+
+	// Submit command buffer
 
 	{
 		VkSubmitInfo submitInfo = 
@@ -256,7 +272,9 @@ int main()
 	// ################################################################################
 
 	vkDestroyFence(device, fence, NULL);
-	vkDestroyBuffer(device, buffer, NULL);
+	
+	// vulkan_buffer_destroy(&buffer, device);
+
 	vkDestroyPipeline(device, pipeline, NULL);
 	vkDestroyPipelineLayout(device, pipelineLayout, NULL);
 	vkFreeDescriptorSets(device, descriptorPool, 1, &descriptorSet);
@@ -265,5 +283,5 @@ int main()
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 	vkDestroyShaderModule(device, shaderModule, NULL);
 
-	cleanup_vulkan(&instance, &device, &commandPool);
+	vulkan_cleanup(&instance, &device, &commandPool);
 }
