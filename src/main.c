@@ -14,7 +14,6 @@
 
 #include "util/logging.h"
 #include "util/util.h"
-#include "util/profiling.h"
 
 #include "impl/vulkan_setup.h"
 #include "impl/vulkan_buffer.h"
