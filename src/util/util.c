@@ -10,39 +10,7 @@ typedef struct UtilFile
 	char* data;
 } UtilFile;
 
-void utilfile_create(UtilFile* utilFile, const char* path)
-{
-	if (utilFile == NULL) error("util file is null %s!", path);
-
-	FILE* file = fopen(path, "rb");
-
-	if (file == NULL) error("Couldn't read file at %s!", path);
-
-	fseek(file, 0L, SEEK_END);
-	size_t fileSize = (size_t)ftell(file);
-	rewind(file);
-
-	char* fileBuffer = malloc(fileSize);
-
-	if (fileBuffer == NULL)
-	{
-		fclose(file);
-		error("Couldn't allocate memory for file!");
-	}
-
-	fread(fileBuffer, sizeof(char), fileSize, file);
-	fclose(file);
-
-	utilFile->size = fileSize;
-	utilFile->data = fileBuffer;
-}
-
-void utilfile_destroy(UtilFile* utilFile)
-{
-	free(utilFile->data);
-}
-
-const char* result_to_name(VkResult result)
+char* result_to_name(VkResult result)
 {
 	switch(result)
 	{
@@ -147,26 +115,7 @@ const char* result_to_name(VkResult result)
 	}
 }
 
-const char* physical_device_type_to_name(VkPhysicalDeviceType physicalDeviceType)
-{
-	switch(physicalDeviceType)
-	{
-		case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-			return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
-		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
-		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
-		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
-		case VK_PHYSICAL_DEVICE_TYPE_CPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_CPU";
-		default:
-			return "INVALID_PHYSICAL_DEVICE_ENUMERATION";
-	}
-}
-
-void queue_flags_to_name(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char* flagArray[])
+void queue_flags_to_name(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char** flagArray)
 {
 	const int maxFlags = 8;
 
@@ -195,39 +144,53 @@ void queue_flags_to_name(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char
 	*queueFlagCount = i;
 }
 
-void memory_type_to_name(VkMemoryPropertyFlagBits memoryTypeFlags, uint32_t* memoryTypeFlagCount, char* memoryTypeArray[])
+char* physical_device_type_to_name(VkPhysicalDeviceType physicalDeviceType)
 {
-	const int maxFlags = 11;
-
-	if (memoryTypeArray == NULL)
+	switch(physicalDeviceType)
 	{
-		char* tempArray[maxFlags];
-		memoryTypeArray = tempArray;
+		case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+			return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
+		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
+		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
+		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
+		case VK_PHYSICAL_DEVICE_TYPE_CPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_CPU";
+		default:
+			return "INVALID_PHYSICAL_DEVICE_ENUMERATION";
+	}
+}
+
+void utilfile_create(UtilFile* utilFile, const char* path)
+{
+	if (utilFile == NULL) error("util file is null %s!", path);
+
+	FILE* file = fopen(path, "rb");
+
+	if (file == NULL) error("Couldn't read file at %s!", path);
+
+	fseek(file, 0L, SEEK_END);
+	size_t fileSize = (size_t)ftell(file);
+	rewind(file);
+
+	char* fileBuffer = malloc(fileSize);
+
+	if (fileBuffer == NULL)
+	{
+		fclose(file);
+		error("Couldn't allocate memory for file!");
 	}
 
-	int i = 0;
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_HOST_COHERENT_BIT";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_HOST_CACHED_BIT";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_PROTECTED_BIT";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV";
-	if (memoryTypeFlags & VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM) 
-		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM";
+	fread(fileBuffer, sizeof(char), fileSize, file);
+	fclose(file);
 
-	*memoryTypeFlagCount = i;
+	utilFile->size = fileSize;
+	utilFile->data = fileBuffer;
+}
+
+void utilfile_destroy(UtilFile* utilFile)
+{
+	free(utilFile->data);
 }

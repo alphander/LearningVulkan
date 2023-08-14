@@ -1,3 +1,6 @@
 
 
-#define DATA_SIZE 10000
+float calculate_stuff(float a, float b)
+{
+    return a + b;
+}
