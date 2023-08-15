@@ -261,18 +261,35 @@ int main()
 	//
 	// ####################################################################################################
 
+	#define BUFFER_SIZE 10000 * sizeof(float)
+
 	VkBuffer buffer;
 	{
 		VkBufferCreateInfo bufferInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-			.size = 10000 * sizeof(float),
+			.size = BUFFER_SIZE,
 			.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		};
 
 		result = vkCreateBuffer(device, &bufferInfo, NULL, &buffer);
 		vkresult_error(result, "vkCreateBuffer"); // ERROR HANDLING
+	}
+
+	VkMemoryRequirements memoryRequirements;
+
+	vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+	// memoryRequirements.
+
+	VkDeviceMemory deviceMemory;
+	{
+		VkMemoryAllocateInfo memoryAllocateInfo =
+		{
+			.allocationSize = memoryRequirements.size,
+		};
+		result = vkAllocateMemory(device, &memoryAllocateInfo, NULL, &deviceMemory);
+		vkresult_error(result, "vkAllocateMemory"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
@@ -410,12 +427,14 @@ int main()
 		{
 			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 			.pCommandBuffers = &commandBuffer,
-			.commandBufferCount = 1,
+			.commandBufferCount = COMMAND_BUFFER_COUNT,
 		};
 
 		result = vkQueueSubmit(queue, 1, &submitInfo, NULL);
 		vkresult_error(result, "vkQueueSubmit");
 	}
+
+
 
 	// ####################################################################################################
 	//	Cleanup
@@ -424,9 +443,9 @@ int main()
 	//
 	// ####################################################################################################
 
-	vkFreeDescriptorSets(device, descriptorPool, 1, &descriptorSet);
+	vkFreeDescriptorSets(device, descriptorPool, DESCRIPTOR_SET_COUNT, &descriptorSet);
 	vkDestroyShaderModule(device, shaderModule, NULL);
-	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(device, commandPool, COMMAND_BUFFER_COUNT, &commandBuffer);
 	vkDestroyCommandPool(device, commandPool, NULL);
 	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);	
