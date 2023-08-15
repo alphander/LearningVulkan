@@ -51,17 +51,13 @@ COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
 $(OUT):\
 	$(OBJ)/main.o\
 	$(OBJ)/logging.o\
-	$(OBJ)/util.o\
-	$(OBJ)/vulkan_setup.o\
-	$(OBJ)/vulkan_buffer.o
+	$(OBJ)/util.o
 	$(ASSEMBLE)
 
 $(OBJ)/main.o:\
 	$(SRC)/main.c\
 	$(SRC)/util/logging.h\
-	$(SRC)/util/util.h\
-	$(SRC)/impl/vulkan_setup.h\
-	$(SRC)/impl/vulkan_buffer.h
+	$(SRC)/util/util.h
 	$(COMPILE)
 
 $(OBJ)/logging.o:\
@@ -71,18 +67,6 @@ $(OBJ)/logging.o:\
 $(OBJ)/util.o:\
 	$(SRC)/util/util.c\
 	$(SRC)/util/logging.h
-	$(COMPILE)
-
-$(OBJ)/vulkan_setup.o:\
-	$(SRC)/impl/vulkan_setup.c\
-	$(SRC)/util/logging.h\
-	$(SRC)/util/util.h
-	$(COMPILE)
-
-$(OBJ)/vulkan_buffer.o:\
-	$(SRC)/impl/vulkan_buffer.c\
-	$(SRC)/util/logging.h\
-	$(SRC)/util/util.h
 	$(COMPILE)
 
 # GLSL Compile 

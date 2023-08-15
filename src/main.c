@@ -14,7 +14,8 @@
 
 #include "util/logging.h"
 #include "util/util.h"
-#include "util/profiling.h"
+
+#define vkresult_error(result, functionName) {if (result != VK_SUCCESS) error("Problem at %s! VkResult: %s\n", functionName, result_to_name(result));}
 
 int main()
 {
@@ -35,10 +36,12 @@ int main()
 
 	// ####################################################################################################
 	// VkInstance
+	//
+	//
+	//
+	// ####################################################################################################
 
 	VkInstance instance;
-
-	// Create VkInstance
 	{
 		VkApplicationInfo applicationInfo = 
 		{
@@ -60,20 +63,23 @@ int main()
 			.ppEnabledLayerNames = enabledLayerArray,
 		};
 
-
 		result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
-		if (result != VK_SUCCESS) error("Problem at vkCreateInstance! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkCreateInstance"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
 	// VkPhysicalDevice
+	//
+	//
+	//
+	// ####################################################################################################
 
 	uint32_t physicalDeviceCount;
 	vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, NULL);
 
 	VkPhysicalDevice physicalDeviceArray[physicalDeviceCount];
 	result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDeviceArray);
-	if (result != VK_SUCCESS) error("Problem at vkEnumeratePhysicalDevices! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+	vkresult_error(result, "vkEnumeratePhysicalDevices"); // ERROR HANDLING
 
 	// ####################################################################################################
 	// VkPhysicalDeviceProperties
@@ -103,6 +109,10 @@ int main()
 
 	// ####################################################################################################
 	// VkPhysicalDevice selection
+	//
+	//
+	//
+	// ####################################################################################################
 
 	VkPhysicalDevice physicalDevice = NULL;
 	VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -165,10 +175,12 @@ int main()
 
 	// ####################################################################################################
 	// vkDevice and VkQueue
+	//
+	//
+	//
+	// ####################################################################################################
 
 	VkDevice device;
-
-	// Create VkDevice
 	{
 		VkDeviceQueueCreateInfo deviceQueueCreateInfo = 
 		{
@@ -186,7 +198,7 @@ int main()
 		};
 	
 		result = vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
-		if (result != VK_SUCCESS) error("Problem at vkCreateDevice! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkCreateDevice"); // ERROR HANDLING
 	}
 
 	VkQueue queue;
@@ -194,10 +206,12 @@ int main()
 
 	// ####################################################################################################
 	// Command Pool
+	//
+	//
+	//
+	// ####################################################################################################
 
 	VkCommandPool commandPool;
-
-	// Create VkCommandPool
 	{
 		VkCommandPoolCreateInfo commandPoolCreateInfo =
 		{
@@ -207,16 +221,21 @@ int main()
 		};
 
 		result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
-		if (result != VK_SUCCESS) error("Problem at vkCreateCommandPool! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkCreateCommandPool"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
 	// Create VkShaderModule
+	//
+	//
+	//
+	// ####################################################################################################
+
+	#define SHADER_FILE_PATH "obj/computeshader.spv"
 
 	VkShaderModule shaderModule;
-
 	{
-		const char* filePath = "obj/computeshader.spv";
+		const char* filePath = SHADER_FILE_PATH;
 
 		UtilFile utilFile;
 
@@ -230,16 +249,19 @@ int main()
 		};
 
 		result = vkCreateShaderModule(device, &shaderModuleCreateInfo, NULL, &shaderModule);
-		if (result != VK_SUCCESS) error("Problem at vkCreateShaderModule! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkCreateShaderModule"); // ERROR HANDLING
 
 		utilfile_destroy(&utilFile);
 	}
 
 	// ####################################################################################################
 	// Create VkBuffer
+	//
+	//
+	//
+	// ####################################################################################################
 
 	VkBuffer buffer;
-
 	{
 		VkBufferCreateInfo bufferInfo = 
 		{
@@ -249,11 +271,16 @@ int main()
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		};
 
-		vkCreateBuffer(device, &bufferInfo, NULL, &buffer);	
+		result = vkCreateBuffer(device, &bufferInfo, NULL, &buffer);
+		vkresult_error(result, "vkCreateBuffer"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
 	// Create VkDescriptorPool
+	//
+	//
+	//
+	// ####################################################################################################
 
 	VkDescriptorPool descriptorPool;
 	{
@@ -271,12 +298,14 @@ int main()
 			.poolSizeCount = 1,
 		};
 
-		vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
+		result = vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL, &descriptorPool);
+		vkresult_error(result, "vkCreateDescriptorPool"); // ERROR HANDLING
 	}
+
+	#define DESCRIPTOR_SET_COUNT 1
 
 	VkDescriptorSet descriptorSet;
 	{
-
 		const VkDescriptorSetLayoutBinding descriptorSetLayoutBinding[] = 
 		{
 			{
@@ -288,15 +317,15 @@ int main()
 			}
 		};
 
-
 		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-			.descriptorSetCount = 1,
+			.descriptorSetCount = DESCRIPTOR_SET_COUNT,
 			.pSetLayouts = descriptorSetLayoutBinding,
 		};
 
-		vkAllocateDescriptorSets(device, NULL, &descriptorSet);
+		result = vkAllocateDescriptorSets(device, NULL, &descriptorSet);
+		vkresult_error(result, "vkAllocateDescriptorSets"); // ERROR HANDLING
 	}
 
 	VkPipelineLayout pipelineLayout;
@@ -307,8 +336,11 @@ int main()
 		};
 
 		result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
-		if (result != VK_SUCCESS) error("Problem at vkCreatePipelineLayout! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkCreatePipelineLayout"); // ERROR HANDLING
 	}
+
+	#define COMPUTE_PIPELINE_COUNT 1
+	#define COMPUTE_PIPELINE_ENTRY_FUNCTION_NAME "main"
 
 	VkPipeline pipeline;
 	{	
@@ -317,7 +349,7 @@ int main()
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 			.stage = VK_SHADER_STAGE_COMPUTE_BIT,
 			.module = shaderModule,
-			.pName = "main",
+			.pName = COMPUTE_PIPELINE_ENTRY_FUNCTION_NAME,
 		};
 
 		VkComputePipelineCreateInfo computePipelineCreateInfo = 
@@ -327,12 +359,18 @@ int main()
 			.layout = pipelineLayout,
 		};
 
-		result = vkCreateComputePipelines(device, NULL, 1, &computePipelineCreateInfo, NULL, &pipeline);
-		if (result != VK_SUCCESS) error("Problem at vkCreateComputePipelines! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		result = vkCreateComputePipelines(device, NULL, COMPUTE_PIPELINE_COUNT, &computePipelineCreateInfo, NULL, &pipeline);
+		vkresult_error(result, "vkCreateComputePipelines"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################
 	// Command Buffer
+	//
+	//
+	//
+	// ####################################################################################################
+
+	#define COMMAND_BUFFER_COUNT 1
 
 	VkCommandBuffer commandBuffer;
 	{
@@ -341,11 +379,11 @@ int main()
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 			.commandPool = commandPool,
 			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-			.commandBufferCount = 1,
+			.commandBufferCount = COMMAND_BUFFER_COUNT,
 		};
 
 		result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
-		if (result != VK_SUCCESS) error("Problem at vkAllocateCommandBuffers! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkAllocateCommandBuffers"); // ERROR HANDLING
 	}
 
 	// Record command buffer	
@@ -356,14 +394,14 @@ int main()
 		};
 
 		result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-		if (result != VK_SUCCESS) error("Problem at vkBeginCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkBeginCommandBuffer"); // ERROR HANDLING
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
 		// vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ); TODO
 	
 		result = vkEndCommandBuffer(commandBuffer);
-		if (result != VK_SUCCESS) error("Problem at vkEndCommandBuffer! VkResult: %s\n", result_to_name(result)); // ERROR HANDLING
+		vkresult_error(result, "vkEndCommandBuffer"); // ERROR HANDLING
 	}
 
 	// Submit command buffer
@@ -375,11 +413,14 @@ int main()
 			.commandBufferCount = 1,
 		};
 
-		vkQueueSubmit(queue, 1, &submitInfo, NULL);
+		result = vkQueueSubmit(queue, 1, &submitInfo, NULL);
+		vkresult_error(result, "vkQueueSubmit");
 	}
 
 	// ####################################################################################################
 	//	Cleanup
+	//
+	//
 	//
 	// ####################################################################################################
 
@@ -388,6 +429,5 @@ int main()
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 	vkDestroyCommandPool(device, commandPool, NULL);
 	vkDestroyDevice(device, NULL);
-	vkDestroyInstance(instance, NULL);
-	
+	vkDestroyInstance(instance, NULL);	
 }
