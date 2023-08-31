@@ -1,7 +1,15 @@
 #include "shaderinclude.comp"
 
-layout(binding = 0) // some sort of input
-layout(binding = 1) // some sort of output
+#define BUFFER_SIZE 1000
+
+layout(set = 0, binding = 0) buffer BufferIn
+{
+    float inData[1000];
+};
+layout(set = 0, binding = 1) buffer BufferOut
+{
+    float outData[1000];
+};
 
 void main()
 {

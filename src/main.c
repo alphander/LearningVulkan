@@ -15,7 +15,29 @@
 #include "util/logging.h"
 #include "util/util.h"
 
-#define vkresult_error(result, functionName) {if (result != VK_SUCCESS) error("Problem at %s! VkResult: %s\n", functionName, result_to_name(result));}
+// Macro preserves "error" line number
+#define vkresult_error(result, functionName)\
+{\
+	if (result != VK_SUCCESS)\
+		error("Problem at %s! VkResult: %s\n", functionName, debug_result_name(result));\
+}
+
+int find_properties(VkPhysicalDeviceMemoryProperties* pMemoryProperties,
+					uint32_t memoryTypeBits,
+					VkMemoryPropertyFlags requiredProperties)
+{
+	uint32_t memoryTypeCount = pMemoryProperties->memoryTypeCount;
+	for (int i = 0; i < memoryTypeCount; i++)
+	{
+		if (!(memoryTypeBits & (1 << i)))
+			continue;
+
+		VkMemoryPropertyFlags propertyFlags = pMemoryProperties->memoryTypes[i].propertyFlags;
+		if ((propertyFlags & requiredProperties) == requiredProperties)
+			return i;
+	}
+	return -1;
+}
 
 int main()
 {
@@ -25,7 +47,7 @@ int main()
 	};
 	const uint32_t enabledLayerCount = (uint32_t) (sizeof(enabledLayerArray) / sizeof(char*));
 
-	const char* const enabledExtensionArray[] = 
+	const char* enabledExtensionArray[] = 
 	{
 
 	};
@@ -35,7 +57,7 @@ int main()
 	VkResult result; // Reusable
 
 	// ####################################################################################################
-	// VkInstance
+	// Instance
 	//
 	//
 	//
@@ -68,113 +90,66 @@ int main()
 	}
 
 	// ####################################################################################################
-	// VkPhysicalDevice
+	// PhysicalDevice
 	//
 	//
 	//
 	// ####################################################################################################
 
-	uint32_t physicalDeviceCount;
-	vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, NULL);
-
-	VkPhysicalDevice physicalDeviceArray[physicalDeviceCount];
-	result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDeviceArray);
-	vkresult_error(result, "vkEnumeratePhysicalDevices"); // ERROR HANDLING
-
-	// ####################################################################################################
-	// VkPhysicalDeviceProperties
-	
-	VkPhysicalDeviceProperties physicalDevicePropertiesArray[physicalDeviceCount];
-	VkPhysicalDeviceFeatures physicalDeviceFeaturesArray[physicalDeviceCount];
-
-	// Populate VkPhysicalDeviceProperties array and populate VkPhysicalDeviceFeatures array
+	VkPhysicalDevice physicalDevice;
+	uint32_t queueFamilyIndex;
 	{
+		uint32_t physicalDeviceCount;
+		vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, NULL);
+		VkPhysicalDevice physicalDeviceArray[physicalDeviceCount];
+		result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDeviceArray);
+		vkresult_error(result, "vkEnumeratePhysicalDevices");
+
+		VkPhysicalDeviceProperties physicalDevicePropertiesArray[physicalDeviceCount];
+		VkPhysicalDeviceFeatures physicalDeviceFeaturesArray[physicalDeviceCount];
+
 		for (int i = 0; i < physicalDeviceCount; i++)
 		{
 			vkGetPhysicalDeviceProperties(physicalDeviceArray[i], &physicalDevicePropertiesArray[i]);
 			vkGetPhysicalDeviceFeatures(physicalDeviceArray[i], &physicalDeviceFeaturesArray[i]);
 		}
 
-		// Print VkPhysicalDeviceProperties and VkPhysicalDeviceFeatures arrays
-		print("\nPhysical Device List:\n");
-		print("-------------------------------------------------------------------------\n");
+		uint32_t selectedIndex = 0;
+		uint32_t index = 0;
 		for (int i = 0; i < physicalDeviceCount; i++)
 		{
-			VkPhysicalDeviceProperties physicalDeviceProperties = physicalDevicePropertiesArray[i]; 
-			VkPhysicalDeviceFeatures physicalDeviceFeatures = physicalDeviceFeaturesArray[i];
-			print("  %s:\n", physicalDeviceProperties.deviceName);
-			print("    - Device Type: \"%s\"\n\n", physical_device_type_to_name(physicalDeviceProperties.deviceType));
-		}
-	}
+			VkPhysicalDevice physicalDevice = physicalDeviceArray[i];
+			VkPhysicalDeviceProperties physicalDeviceProperties = physicalDevicePropertiesArray[i];
 
-	// ####################################################################################################
-	// VkPhysicalDevice selection
-	//
-	//
-	//
-	// ####################################################################################################
+			uint32_t queueFamilyPropertiesCount;
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, NULL);
+			VkQueueFamilyProperties queueFamilyPropertiesArray[physicalDeviceCount];
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, queueFamilyPropertiesArray);
 
-	VkPhysicalDevice physicalDevice = NULL;
-	VkPhysicalDeviceProperties physicalDeviceProperties;
-	uint32_t queueFamilyIndex = 0;
-
-	// Select physical device and select queue family
-	{
-		print("\nQueue Family:\n");
-		print("-------------------------------------------------------------------------");
-		for (int i = 0; i < physicalDeviceCount; i++)
-		{
-			print("\n -Queue Families: %s\n", physicalDevicePropertiesArray[i].deviceName);
-			VkPhysicalDeviceProperties currentPhysicalDeviceProperties = physicalDevicePropertiesArray[i];
-
-			uint32_t currentQueueFamilyPropertiesCount;
-			vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceArray[i], &currentQueueFamilyPropertiesCount, NULL);
-			VkQueueFamilyProperties currentQueueFamilyPropertiesArray[physicalDeviceCount];
-			vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceArray[i], &currentQueueFamilyPropertiesCount, currentQueueFamilyPropertiesArray);
-
-			for (int j = 0; j < currentQueueFamilyPropertiesCount; j++)
+			for (int j = 0; j < queueFamilyPropertiesCount; j++)
 			{
-				VkQueueFamilyProperties currentQueueFamilyProperties = currentQueueFamilyPropertiesArray[j];
-				VkQueueFlags queueFlags = currentQueueFamilyProperties.queueFlags;
+				VkQueueFamilyProperties queueFamilyProperties = queueFamilyPropertiesArray[j];
+				VkQueueFlags queueFlags = queueFamilyProperties.queueFlags;
 
-				print("   -Queue Family Index %i:", j);
+				if (!(queueFlags & VK_QUEUE_COMPUTE_BIT)) continue;
 
-				if (currentQueueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT //&&
-					/*currentPhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU*/)
-				{
-					print(" VALID\n");
-					physicalDevice = physicalDeviceArray[i];
-					physicalDeviceProperties = physicalDevicePropertiesArray[i];
-					queueFamilyIndex = j;
-				}
-				else
-				{
-					print(" NOT VALID\n");
-				}
-
-				uint32_t flagCount;
-				queue_flags_to_name(queueFlags, &flagCount, NULL);
-				char* queueFlagNameArray[flagCount];
-				queue_flags_to_name(queueFlags, &flagCount, queueFlagNameArray);
-
-
-				for (int k = 0; k < flagCount; k++)
-				{
-					print("      %s\n", queueFlagNameArray[k]);
-				}
-				print("\n");
+				index = j;
 			}
+			selectedIndex = i;
 		}
-
-		if (physicalDevice == NULL) error("No valid queues!"); // ERROR HANDLING
-
-		print("Chose Queue Family: %d\n", queueFamilyIndex);
+		physicalDevice = physicalDeviceArray[selectedIndex];
+		queueFamilyIndex = index;
 	}
 
-	print("Max bound descriptor sets: %i\n", physicalDeviceProperties.limits.maxBoundDescriptorSets);
+	debug_physical_device(physicalDevice, queueFamilyIndex);
+
+	VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
+	// Query for memory type for vkAllocateMemory
+	debug_physical_device_memory_properties(physicalDeviceMemoryProperties);
 
 	// ####################################################################################################
-	// vkDevice and VkQueue
+	// Device and Queue
 	//
 	//
 	//
@@ -196,7 +171,7 @@ int main()
 			.pQueueCreateInfos = &deviceQueueCreateInfo,
 			.queueCreateInfoCount = 1,
 		};
-	
+
 		result = vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
 		vkresult_error(result, "vkCreateDevice"); // ERROR HANDLING
 	}
@@ -205,27 +180,51 @@ int main()
 	vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
 	// ####################################################################################################
-	// Command Pool
+	// Buffer
 	//
 	//
 	//
 	// ####################################################################################################
 
-	VkCommandPool commandPool;
+	#define BUFFER_SIZE 10000 * sizeof(float)
+
+	VkBuffer buffer;
 	{
-		VkCommandPoolCreateInfo commandPoolCreateInfo =
+		VkBufferCreateInfo bufferInfo = 
 		{
-			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-			.queueFamilyIndex = queueFamilyIndex,
+			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+			.size = BUFFER_SIZE,
+			.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		};
 
-		result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
-		vkresult_error(result, "vkCreateCommandPool"); // ERROR HANDLING
+		result = vkCreateBuffer(device, &bufferInfo, NULL, &buffer);
+		vkresult_error(result, "vkCreateBuffer"); // ERROR HANDLING
 	}
 
+	VkMemoryRequirements memoryRequirements;
+	vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+
+	debug_memory_requirements(memoryRequirements);
+
+	VkDeviceMemory deviceMemory;
+	{
+		VkMemoryAllocateInfo memoryAllocateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+			.allocationSize = memoryRequirements.size,
+			.memoryTypeIndex = 0, // TODO
+		};
+		result = vkAllocateMemory(device, &memoryAllocateInfo, NULL, &deviceMemory);
+		vkresult_error(result, "vkAllocateMemory"); // ERROR HANDLING
+	}
+
+	print("\n");
+
+	vkBindBufferMemory(device, buffer, deviceMemory, 0);
+
 	// ####################################################################################################
-	// Create VkShaderModule
+	// Shader Module
 	//
 	//
 	//
@@ -255,45 +254,7 @@ int main()
 	}
 
 	// ####################################################################################################
-	// Create VkBuffer
-	//
-	//
-	//
-	// ####################################################################################################
-
-	#define BUFFER_SIZE 10000 * sizeof(float)
-
-	VkBuffer buffer;
-	{
-		VkBufferCreateInfo bufferInfo = 
-		{
-			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-			.size = BUFFER_SIZE,
-			.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-		};
-
-		result = vkCreateBuffer(device, &bufferInfo, NULL, &buffer);
-		vkresult_error(result, "vkCreateBuffer"); // ERROR HANDLING
-	}
-
-	VkMemoryRequirements memoryRequirements;
-
-	vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
-	// memoryRequirements.
-
-	VkDeviceMemory deviceMemory;
-	{
-		VkMemoryAllocateInfo memoryAllocateInfo =
-		{
-			.allocationSize = memoryRequirements.size,
-		};
-		result = vkAllocateMemory(device, &memoryAllocateInfo, NULL, &deviceMemory);
-		vkresult_error(result, "vkAllocateMemory"); // ERROR HANDLING
-	}
-
-	// ####################################################################################################
-	// Create VkDescriptorPool
+	// Descriptor Set
 	//
 	//
 	//
@@ -319,37 +280,59 @@ int main()
 		vkresult_error(result, "vkCreateDescriptorPool"); // ERROR HANDLING
 	}
 
+	const VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[] = 
+	{
+		{
+			.binding = 0,
+			.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+			.pImmutableSamplers = NULL,
+		}
+	};
+
 	#define DESCRIPTOR_SET_COUNT 1
 
 	VkDescriptorSet descriptorSet;
 	{
-		const VkDescriptorSetLayoutBinding descriptorSetLayoutBinding[] = 
-		{
-			{
-				.binding = 0,
-				.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-				.descriptorCount = 1,
-				.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-				.pImmutableSamplers = NULL,
-			}
-		};
-
 		VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 			.descriptorSetCount = DESCRIPTOR_SET_COUNT,
-			.pSetLayouts = descriptorSetLayoutBinding,
+			.pSetLayouts = descriptorSetLayoutBindings,
+			.descriptorPool = descriptorPool,
 		};
 
 		result = vkAllocateDescriptorSets(device, NULL, &descriptorSet);
 		vkresult_error(result, "vkAllocateDescriptorSets"); // ERROR HANDLING
 	}
 
+	VkDescriptorSetLayout descriptorSetLayout;
+	{
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = 
+		{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+			.pBindings = descriptorSetLayoutBindings,
+			.bindingCount = 1,
+		};
+
+		vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayout);
+	}
+
+	// ####################################################################################################
+	// Create VkPipeline
+	//
+	//
+	//
+	// ####################################################################################################
+
 	VkPipelineLayout pipelineLayout;
 	{
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = 
 		{
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+			.pSetLayouts = &descriptorSetLayout,
+			.setLayoutCount = 1,
 		};
 
 		result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
@@ -378,6 +361,26 @@ int main()
 
 		result = vkCreateComputePipelines(device, NULL, COMPUTE_PIPELINE_COUNT, &computePipelineCreateInfo, NULL, &pipeline);
 		vkresult_error(result, "vkCreateComputePipelines"); // ERROR HANDLING
+	}
+
+	// ####################################################################################################
+	// Command Pool
+	//
+	//
+	//
+	// ####################################################################################################
+
+	VkCommandPool commandPool;
+	{
+		VkCommandPoolCreateInfo commandPoolCreateInfo =
+		{
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+			.queueFamilyIndex = queueFamilyIndex,
+		};
+
+		result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
+		vkresult_error(result, "vkCreateCommandPool"); // ERROR HANDLING
 	}
 
 	// ####################################################################################################

@@ -10,7 +10,9 @@ typedef struct UtilFile
 	char* data;
 } UtilFile;
 
-char* result_to_name(VkResult result)
+#include "util/logging.h"
+
+const char* debug_result_name(VkResult result)
 {
 	switch(result)
 	{
@@ -115,7 +117,26 @@ char* result_to_name(VkResult result)
 	}
 }
 
-void queue_flags_to_name(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char** flagArray)
+const char* debug_physical_device_type_name(VkPhysicalDeviceType physicalDeviceType)
+{
+	switch(physicalDeviceType)
+	{
+		case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+			return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
+		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
+		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
+		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
+		case VK_PHYSICAL_DEVICE_TYPE_CPU:
+			return "VK_PHYSICAL_DEVICE_TYPE_CPU";
+		default:
+			return "INVALID_PHYSICAL_DEVICE_ENUMERATION";
+	}
+}
+
+void debug_queue_flags_names(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char* flagArray[])
 {
 	const int maxFlags = 8;
 
@@ -144,22 +165,102 @@ void queue_flags_to_name(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char
 	*queueFlagCount = i;
 }
 
-char* physical_device_type_to_name(VkPhysicalDeviceType physicalDeviceType)
+void debug_memory_property_flag_names(VkMemoryPropertyFlagBits memoryTypeFlags, uint32_t* memoryTypeFlagCount, char* memoryTypeArray[])
 {
-	switch(physicalDeviceType)
+	const int maxFlags = 11;
+
+	if (memoryTypeArray == NULL)
 	{
-		case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-			return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
-		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
-		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
-		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
-		case VK_PHYSICAL_DEVICE_TYPE_CPU:
-			return "VK_PHYSICAL_DEVICE_TYPE_CPU";
-		default:
-			return "INVALID_PHYSICAL_DEVICE_ENUMERATION";
+		char* tempArray[maxFlags];
+		memoryTypeArray = tempArray;
+	}
+
+	int i = 0;
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_HOST_COHERENT_BIT";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_HOST_CACHED_BIT";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_PROTECTED_BIT";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD";
+	if (memoryTypeFlags & VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV) 
+		memoryTypeArray[i++] = "VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV";
+
+	*memoryTypeFlagCount = i;
+}
+
+void debug_physical_device(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex)
+{
+	VkPhysicalDeviceProperties physicalDeviceProperties;
+	vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+
+	print("-DeviceName: %s\n", physicalDeviceProperties.deviceName);
+	print("-Queue Family Index: %i\n", queueFamilyIndex);
+
+	uint32_t queueFamilyPropertiesCount;
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, NULL);
+	VkQueueFamilyProperties queueFamilyPropertiesArray[queueFamilyPropertiesCount];
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, queueFamilyPropertiesArray);
+
+	VkQueueFamilyProperties queueFamilyProperties = queueFamilyPropertiesArray[queueFamilyIndex];
+	VkQueueFlags queueFlags = queueFamilyProperties.queueFlags;
+
+	uint32_t flagCount;
+	debug_queue_flags_names(queueFlags, &flagCount, NULL);
+	char* queueFlagNameArray[flagCount];
+	debug_queue_flags_names(queueFlags, &flagCount, queueFlagNameArray);
+
+	for (int i = 0; i < flagCount; i++)
+	{
+		print("  -%s\n", queueFlagNameArray[i]);
+	}
+}
+
+void debug_physical_device_memory_properties(VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties)
+{
+	uint32_t memoryTypeCount = physicalDeviceMemoryProperties.memoryTypeCount;
+	VkMemoryType* memoryTypes = physicalDeviceMemoryProperties.memoryTypes;
+
+	for (int i = 0; i < memoryTypeCount; i++)
+	{
+		uint32_t memoryTypeFlagCount;
+		uint32_t heapIndex = memoryTypes[i].heapIndex;
+		VkMemoryPropertyFlags memoryPropertyFlags = memoryTypes[i].propertyFlags;
+		debug_memory_property_flag_names(memoryPropertyFlags, &memoryTypeFlagCount, NULL);
+		char* memoryTypeFlags[memoryTypeFlagCount];
+		debug_memory_property_flag_names(memoryPropertyFlags, &memoryTypeFlagCount, memoryTypeFlags);
+
+		print("-HeapIndex: %d\n", heapIndex);
+		for(int j = 0; j < memoryTypeFlagCount; j++)
+		{
+			print("  -%s\n", memoryTypeFlags[j]);
+		}
+	}
+}
+
+void debug_memory_requirements(VkMemoryRequirements memoryRequirements)
+{
+	uint32_t memoryTypeBits = memoryRequirements.memoryTypeBits;
+	uint32_t flagRequirements;
+	debug_memory_property_flag_names(memoryTypeBits, &flagRequirements, NULL);
+	char* memoryTypeArray[flagRequirements];
+	debug_memory_property_flag_names(memoryTypeBits, &flagRequirements, memoryTypeArray);
+
+	print("-Memory Requirements\n");
+	for (int i = 0; i < flagRequirements; i++)
+	{
+		print("  -%s\n", memoryTypeArray[i]);
 	}
 }
 
