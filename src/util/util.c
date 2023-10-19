@@ -165,7 +165,7 @@ void debug_queue_flags_names(VkQueueFlags queueFlags, uint32_t* queueFlagCount, 
 	*queueFlagCount = i;
 }
 
-void debug_memory_property_flag_names(VkMemoryPropertyFlagBits memoryTypeFlags, uint32_t* memoryTypeFlagCount, char* memoryTypeArray[])
+void debug_memory_property_flag_names(VkMemoryPropertyFlags memoryTypeFlags, uint32_t* memoryTypeFlagCount, char* memoryTypeArray[])
 {
 	const int maxFlags = 11;
 
@@ -224,43 +224,6 @@ void debug_physical_device(VkPhysicalDevice physicalDevice, uint32_t queueFamily
 	for (int i = 0; i < flagCount; i++)
 	{
 		print("  -%s\n", queueFlagNameArray[i]);
-	}
-}
-
-void debug_physical_device_memory_properties(VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties)
-{
-	uint32_t memoryTypeCount = physicalDeviceMemoryProperties.memoryTypeCount;
-	VkMemoryType* memoryTypes = physicalDeviceMemoryProperties.memoryTypes;
-
-	for (int i = 0; i < memoryTypeCount; i++)
-	{
-		uint32_t memoryTypeFlagCount;
-		uint32_t heapIndex = memoryTypes[i].heapIndex;
-		VkMemoryPropertyFlags memoryPropertyFlags = memoryTypes[i].propertyFlags;
-		debug_memory_property_flag_names(memoryPropertyFlags, &memoryTypeFlagCount, NULL);
-		char* memoryTypeFlags[memoryTypeFlagCount];
-		debug_memory_property_flag_names(memoryPropertyFlags, &memoryTypeFlagCount, memoryTypeFlags);
-
-		print("-HeapIndex: %d\n", heapIndex);
-		for(int j = 0; j < memoryTypeFlagCount; j++)
-		{
-			print("  -%s\n", memoryTypeFlags[j]);
-		}
-	}
-}
-
-void debug_memory_requirements(VkMemoryRequirements memoryRequirements)
-{
-	uint32_t memoryTypeBits = memoryRequirements.memoryTypeBits;
-	uint32_t flagRequirements;
-	debug_memory_property_flag_names(memoryTypeBits, &flagRequirements, NULL);
-	char* memoryTypeArray[flagRequirements];
-	debug_memory_property_flag_names(memoryTypeBits, &flagRequirements, memoryTypeArray);
-
-	print("-Memory Requirements\n");
-	for (int i = 0; i < flagRequirements; i++)
-	{
-		print("  -%s\n", memoryTypeArray[i]);
 	}
 }
 

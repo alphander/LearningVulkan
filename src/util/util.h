@@ -13,6 +13,4 @@ void debug_physical_device(VkPhysicalDevice physicalDevice, uint32_t queueFamily
 const char* debug_result_name(VkResult result);
 const char* debug_physical_device_type_name(VkPhysicalDeviceType physicalDeviceType);
 void debug_queue_flags_names(VkQueueFlags queueFlags, uint32_t* queueFlagCount, char* flagArray[]);
-void debug_memory_property_flag_names(VkMemoryPropertyFlagBits memoryTypeFlags, uint32_t* memoryTypeFlagCount, char* memoryTypeArray[]);
-void debug_physical_device_memory_properties(VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
-void debug_memory_requirements(VkMemoryRequirements memoryRequirements);
+void debug_memory_property_flag_names(VkMemoryPropertyFlags memoryTypeFlags, uint32_t* memoryTypeFlagCount, char* memoryTypeArray[]);

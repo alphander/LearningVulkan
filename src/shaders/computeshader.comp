@@ -1,17 +1,14 @@
 #include "shaderinclude.comp"
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 1024
 
 layout(set = 0, binding = 0) buffer BufferIn
 {
-    float inData[1000];
-};
-layout(set = 0, binding = 1) buffer BufferOut
-{
-    float outData[1000];
+    float data[BUFFER_SIZE];
 };
 
 void main()
 {
-    
+    uint index = gl_WorkGroupSize.x;
+    data[index] = data[index] + 1;
 }

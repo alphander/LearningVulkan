@@ -49,13 +49,26 @@ COMPILE=$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
 # C Compile
 
 $(OUT):\
-	$(OBJ)/main.o\
+	$(OBJ)/mainoriginal.o\
 	$(OBJ)/logging.o\
-	$(OBJ)/util.o
+	$(OBJ)/util.o\
+	$(OBJ)/vulkan_compute.o
 	$(ASSEMBLE)
 
 $(OBJ)/main.o:\
 	$(SRC)/main.c\
+	$(SRC)/compute_engine/vulkan_compute.c\
+	$(SRC)/util/logging.h\
+	$(SRC)/util/util.h
+	$(COMPILE)
+
+$(OBJ)/mainoriginal.o:\
+	$(SRC)/mainoriginal.c
+	$(COMPILE)
+
+$(OBJ)/vulkan_compute.o:\
+	$(SRC)/compute_engine/vulkan_compute.c\
+	$(SRC)/compute_engine/vulkan_compute.h\
 	$(SRC)/util/logging.h\
 	$(SRC)/util/util.h
 	$(COMPILE)
